@@ -14,6 +14,14 @@
   --color-yt-light-border: #e0e0e0;
 }
 
+html.player-window,
+html.player-window body,
+html.player-window #root {
+  background: transparent !important;
+  background-color: transparent !important;
+  overflow: hidden !important;
+}
+
 /* YouTube Style Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;

@@ -18,6 +18,17 @@ contextBridge.exposeInMainWorld('kudtubeAPI', {
   playerSetQuality: (quality) => ipcRenderer.invoke('player-set-quality', quality),
   playerSetSpeed: (speed) => ipcRenderer.invoke('player-set-speed', speed),
   playerSetFullscreen: (fullscreen) => ipcRenderer.invoke('player-set-fullscreen', fullscreen),
+  playerNext: () => ipcRenderer.invoke('player-next'),
+  onPlayerNext: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('player-next', handler);
+    return () => ipcRenderer.removeListener('player-next', handler);
+  },
+  onPlayerFullscreenChange: (callback) => {
+    const handler = (_event, fs) => callback(fs);
+    ipcRenderer.on('player-fullscreen-change', handler);
+    return () => ipcRenderer.removeListener('player-fullscreen-change', handler);
+  },
   onPlayerState: (callback) => {
     const handler = (_event, state) => callback(state);
     ipcRenderer.on('player-state', handler);

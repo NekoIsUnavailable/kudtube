@@ -76,6 +76,9 @@ declare global {
       playerSetQuality: (quality: string) => Promise<{ ok: boolean }>;
       playerSetSpeed: (speed: number) => Promise<{ ok: boolean }>;
       playerSetFullscreen: (fullscreen: boolean) => Promise<{ ok: boolean }>;
+      playerNext: () => Promise<{ ok: boolean }>;
+      onPlayerNext: (callback: () => void) => () => void;
+      onPlayerFullscreenChange: (callback: (fullscreen: boolean) => void) => () => void;
       onPlayerState: (callback: (state: PlayerState) => void) => () => void;
       startDownload: (video: VideoItem, quality?: string) => Promise<{ ok: boolean; item?: DownloadItem; error?: string }>;
       cancelDownload: (videoId: string) => Promise<boolean>;

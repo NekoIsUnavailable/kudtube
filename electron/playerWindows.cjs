@@ -1,42 +1,98 @@
 const { BrowserWindow } = require('electron');
+const path = require('path');
 
 class PlayerWindowManager {
-  constructor(mainWindow) {
+  constructor(mainWindow, { isDev, preloadPath, indexHtmlPath }) {
     this.mainWindow = mainWindow;
+    this.isDev = isDev;
+    this.preloadPath = preloadPath;
+    this.indexHtmlPath = indexHtmlPath;
     this.playerWindow = null;
     this.targetBounds = null;
-    this.isAttached = false;
+    this.isFullscreen = false;
+  }
+
+  isOpen() {
+    return Boolean(this.playerWindow && !this.playerWindow.isDestroyed());
   }
 
   getNativeHandle() {
-    if (!this.playerWindow || this.playerWindow.isDestroyed()) {
+    if (!this.isOpen()) {
       this.createWindow();
     }
-    return this.playerWindow.getNativeWindowHandle().readInt32LE(0);
+    const handle = this.playerWindow.getNativeWindowHandle();
+    return handle.length >= 8
+      ? handle.readBigInt64LE(0).toString()
+      : String(handle.readInt32LE(0));
   }
 
-  createWindow() {
-    if (this.playerWindow && !this.playerWindow.isDestroyed()) {
+  createWindow(initialBounds) {
+    if (this.isOpen()) {
       return this.playerWindow;
     }
 
-    const mainBounds = this.mainWindow.getBounds();
+    const contentBounds = this.mainWindow.getContentBounds();
+    const bounds = initialBounds || this.targetBounds || {
+      x: 24,
+      y: 72,
+      width: Math.round(contentBounds.width * 0.65),
+      height: Math.round(contentBounds.width * 0.65 * (9 / 16)),
+    };
+
+    const targetX = Math.round(contentBounds.x + bounds.x);
+    const targetY = Math.round(contentBounds.y + bounds.y);
+    const targetWidth = Math.max(Math.round(bounds.width), 10);
+    const targetHeight = Math.max(Math.round(bounds.height), 10);
 
     this.playerWindow = new BrowserWindow({
-      width: Math.round(mainBounds.width * 0.7),
-      height: Math.round(mainBounds.height * 0.6),
-      x: mainBounds.x + 20,
-      y: mainBounds.y + 60,
-      show: false,
+      x: targetX,
+      y: targetY,
+      width: targetWidth,
+      height: targetHeight,
       frame: false,
+      transparent: true,
+      backgroundColor: '#00000000',
+      hasShadow: false,
       parent: this.mainWindow,
-      backgroundColor: '#000000',
-      focusable: false,
+      modal: false,
       skipTaskbar: true,
+      focusable: true,
+      show: false,
       webPreferences: {
+        preload: this.preloadPath,
         nodeIntegration: false,
         contextIsolation: true,
+        webSecurity: false,
       },
+    });
+
+    this.playerWindow.on('page-title-updated', (e) => e.preventDefault());
+
+    if (this.isDev) {
+      this.playerWindow.loadURL('http://localhost:5173/?player=1');
+    } else {
+      this.playerWindow.loadFile(this.indexHtmlPath, { query: { player: '1' } });
+    }
+
+    this.playerWindow.once('ready-to-show', () => {
+      if (this.isOpen()) {
+        this.playerWindow.show();
+      }
+    });
+
+    this.playerWindow.on('enter-full-screen', () => {
+      this.isFullscreen = true;
+      this.playerWindow?.webContents.send('player-fullscreen-change', true);
+      this.mainWindow?.webContents.send('player-fullscreen-change', true);
+    });
+
+    this.playerWindow.on('leave-full-screen', () => {
+      this.isFullscreen = false;
+      this.playerWindow?.webContents.send('player-fullscreen-change', false);
+      this.mainWindow?.webContents.send('player-fullscreen-change', false);
+      if (this.targetBounds) {
+        this.setBounds(this.targetBounds);
+      }
     });
 
     this.playerWindow.on('closed', () => {
@@ -47,26 +103,31 @@ class PlayerWindowManager {
   }
 
   show() {
-    if (this.playerWindow && !this.playerWindow.isDestroyed()) {
+    if (this.isOpen()) {
       this.playerWindow.show();
     }
   }
 
   hide() {
-    if (this.playerWindow && !this.playerWindow.isDestroyed()) {
+    if (this.isOpen()) {
       this.playerWindow.hide();
     }
   }
 
   setBounds(rect) {
-    if (!this.playerWindow || this.playerWindow.isDestroyed() || !this.mainWindow || this.mainWindow.isDestroyed()) {
+    if (!rect) return;
+    this.targetBounds = rect;
+
+    if (!this.isOpen()) {
+      this.createWindow(rect);
       return;
     }
 
-    // rect is in mainWindow content coordinates { x, y, width, height }
-    const [mainX, mainY] = this.mainWindow.getPosition();
-    const targetX = Math.round(mainX + rect.x);
-    const targetY = Math.round(mainY + rect.y);
+    if (this.isFullscreen) return;
+
+    const contentBounds = this.mainWindow.getContentBounds();
+    const targetX = Math.round(contentBounds.x + rect.x);
+    const targetY = Math.round(contentBounds.y + rect.y);
     const targetWidth = Math.max(Math.round(rect.width), 10);
     const targetHeight = Math.max(Math.round(rect.height), 10);
 
@@ -83,13 +144,17 @@ class PlayerWindowManager {
   }
 
   setFullScreen(fullscreen) {
-    if (this.playerWindow && !this.playerWindow.isDestroyed()) {
-      this.playerWindow.setFullScreen(Boolean(fullscreen));
+    if (!this.isOpen()) return;
+    this.isFullscreen = Boolean(fullscreen);
+    this.playerWindow.setFullScreen(this.isFullscreen);
+
+    if (!this.isFullscreen && this.targetBounds) {
+      this.setBounds(this.targetBounds);
     }
   }
 
   close() {
-    if (this.playerWindow && !this.playerWindow.isDestroyed()) {
+    if (this.isOpen()) {
       this.playerWindow.destroy();
       this.playerWindow = null;
     }

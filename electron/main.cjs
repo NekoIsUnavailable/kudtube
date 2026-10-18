@@ -33,12 +33,17 @@ function createWindow() {
     icon: appIcon.loadWindowIcon() || appIcon.getIconPath(),
   });
 
-  playerManager = new PlayerWindowManager(mainWindow);
+  const preloadPath = path.join(__dirname, 'preload.cjs');
+  const indexHtmlPath = path.join(__dirname, '../dist/index.html');
+  playerManager = new PlayerWindowManager(mainWindow, { isDev, preloadPath, indexHtmlPath });
   downloadManager = new DownloadManager(() => (mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null));
 
   mpv.onStateChange = (state) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('player-state', state);
+    }
+    if (playerManager?.playerWindow && !playerManager.playerWindow.isDestroyed()) {
+      playerManager.playerWindow.webContents.send('player-state', state);
     }
   };
 
@@ -51,6 +56,21 @@ function createWindow() {
   mainWindow.on('resize', () => {
     if (playerManager && playerManager.targetBounds) {
       playerManager.setBounds(playerManager.targetBounds);
+    }
+  });
+
+  mainWindow.on('minimize', () => {
+    if (playerManager?.isOpen()) {
+      playerManager.hide();
+    }
+  });
+
+  mainWindow.on('restore', () => {
+    if (playerManager?.isOpen()) {
+      playerManager.show();
+      if (playerManager.targetBounds) {
+        playerManager.setBounds(playerManager.targetBounds);
+      }
     }
   });
 
@@ -184,6 +204,13 @@ ipcMain.handle('player-set-speed', async (_event, speed) => {
 ipcMain.handle('player-set-fullscreen', async (_event, fullscreen) => {
   if (playerManager) {
     playerManager.setFullScreen(fullscreen);
+  }
+  return { ok: true };
+});
+
+ipcMain.handle('player-next', async () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('player-next');
   }
   return { ok: true };
 });

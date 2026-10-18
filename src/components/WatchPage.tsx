@@ -1,18 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  Play,
-  Pause,
-  SkipForward,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
   Clock,
   Download,
   ListPlus,
   ThumbsUp,
   Check,
-  Tv,
 } from 'lucide-react';
 import type { VideoItem, PlayerState, Playlist } from '../types';
 import { formatDuration, formatViews } from '../utils/format';
@@ -51,12 +43,8 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     quality: '1080p',
   });
 
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const hideControlsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showQualityMenu, setShowQualityMenu] = useState(false);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const [isTheater, setIsTheater] = useState(false);
+  const [isTheater] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [inWatchLater, setInWatchLater] = useState(() => isWatchLater(video.id));
@@ -78,6 +66,8 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   useEffect(() => {
     setInWatchLater(isWatchLater(video.id));
     let unsubState: (() => void) | null = null;
+    let unsubNext: (() => void) | null = null;
+    let unsubFs: (() => void) | null = null;
 
     const start = async () => {
       if (!containerRef.current) return;
@@ -98,6 +88,23 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       unsubState = window.kudtubeAPI?.onPlayerState((state) => {
         setPlayerState(state);
       });
+
+      unsubNext = window.kudtubeAPI?.onPlayerNext?.(() => {
+        if (playlist && playlist.videos.length > 0) {
+          const curIdx = playlist.videos.findIndex((v) => v.id === video.id);
+          if (curIdx >= 0 && curIdx < playlist.videos.length - 1) {
+            onSelectVideo(playlist.videos[curIdx + 1]);
+            return;
+          }
+        }
+        if (upNextVideos.length > 0) {
+          onSelectVideo(upNextVideos[0]);
+        }
+      });
+
+      unsubFs = window.kudtubeAPI?.onPlayerFullscreenChange?.((fs) => {
+        setIsFullscreen(fs);
+      });
     };
 
     start();
@@ -113,9 +120,11 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       window.removeEventListener('resize', updatePlayerBounds);
       window.removeEventListener('scroll', updatePlayerBounds);
       if (unsubState) unsubState();
+      if (unsubNext) unsubNext();
+      if (unsubFs) unsubFs();
       window.kudtubeAPI?.stopPlayer();
     };
-  }, [video.id, video.url, updatePlayerBounds]);
+  }, [video.id, video.url, updatePlayerBounds, playlist, upNextVideos, onSelectVideo]);
 
   // Auto-advance to next video on EOF
   useEffect(() => {
@@ -133,63 +142,8 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     }
   }, [playerState.eof, playlist, video.id, upNextVideos, onSelectVideo]);
 
-  // Controls auto-hide on inactivity
-  const handleMouseMove = () => {
-    setControlsVisible(true);
-    if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
-    hideControlsTimer.current = setTimeout(() => {
-      if (!playerState.pause) {
-        setControlsVisible(false);
-        setShowQualityMenu(false);
-        setShowSpeedMenu(false);
-      }
-    }, 2800);
-  };
-
-  const handlePlayPause = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.kudtubeAPI?.playerTogglePlay();
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    window.kudtubeAPI?.playerSeek(val);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    window.kudtubeAPI?.playerSetVolume(val);
-  };
-
-  const handleToggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.kudtubeAPI?.playerSetMute(!playerState.mute);
-  };
-
-  const handleQualitySelect = (quality: string) => {
-    setShowQualityMenu(false);
-    window.kudtubeAPI?.playerSetQuality(quality);
-  };
-
-  const handleSpeedSelect = (speed: number) => {
-    setShowSpeedMenu(false);
-    window.kudtubeAPI?.playerSetSpeed(speed);
-  };
-
-  const handleToggleFullscreen = () => {
-    const next = !isFullscreen;
-    setIsFullscreen(next);
-    window.kudtubeAPI?.playerSetFullscreen(next);
-  };
-
-  const handleToggleTheater = () => {
-    setIsTheater((prev) => !prev);
-    setTimeout(updatePlayerBounds, 100);
-  };
-
   return (
     <div
-      onMouseMove={handleMouseMove}
       className="w-full min-h-screen bg-white dark:bg-[#0f0f0f] text-black dark:text-white pb-24 transition-colors"
     >
       <div
@@ -199,173 +153,13 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       >
         {/* Left Column: Player & Video Info */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
-          {/* Video Player Box */}
+          {/* Video Player Box Anchor (Native MPV and PlayerOverlay render here) */}
           <div
             ref={containerRef}
-            onClick={handlePlayPause}
-            className={`relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl group cursor-pointer ${
+            className={`relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
-          >
-            {/* Buffering Indicator */}
-            {playerState.buffering && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none">
-                <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-
-            {/* Error Message */}
-            {playerState.error && (
-              <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 text-white p-6 text-center">
-                <p className="text-sm text-red-400 font-medium">{playerState.error}</p>
-              </div>
-            )}
-
-            {/* In-Player YouTube Controls Overlay */}
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className={`absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-3 pt-8 flex flex-col gap-2 transition-opacity duration-300 ${
-                controlsVisible || playerState.pause ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              }`}
-            >
-              {/* Progress Bar (Scrubber) */}
-              <div className="relative flex items-center group/scrubber cursor-pointer">
-                <input
-                  type="range"
-                  min={0}
-                  max={playerState.duration || 100}
-                  value={playerState.timePos || 0}
-                  onChange={handleSeek}
-                  className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-red-600 hover:h-1.5 transition-all"
-                />
-              </div>
-
-              {/* Bottom Controls Bar */}
-              <div className="flex items-center justify-between text-white text-xs select-none">
-                {/* Left Controls: Play, Next, Volume, Time */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handlePlayPause}
-                    className="p-1 hover:text-red-500 transition"
-                    title={playerState.pause ? 'Play (Space)' : 'Pause (Space)'}
-                  >
-                    {playerState.pause ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (upNextVideos.length > 0) onSelectVideo(upNextVideos[0]);
-                    }}
-                    className="p-1 hover:text-red-500 transition"
-                    title="Next (Shift+N)"
-                  >
-                    <SkipForward className="w-4 h-4 fill-current" />
-                  </button>
-
-                  {/* Volume Slider */}
-                  <div className="flex items-center gap-1.5 group/vol">
-                    <button onClick={handleToggleMute} className="p-1 hover:text-red-500 transition">
-                      {playerState.mute || playerState.volume === 0 ? (
-                        <VolumeX className="w-4 h-4" />
-                      ) : (
-                        <Volume2 className="w-4 h-4" />
-                      )}
-                    </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={playerState.mute ? 0 : playerState.volume}
-                      onChange={handleVolumeChange}
-                      className="w-16 h-1 bg-white/30 rounded appearance-none cursor-pointer accent-white"
-                    />
-                  </div>
-
-                  {/* Time Stamp */}
-                  <span className="text-[11px] font-mono font-medium text-gray-300 ml-1">
-                    {formatDuration(playerState.timePos)} / {formatDuration(playerState.duration)}
-                  </span>
-                </div>
-
-                {/* Right Controls: Quality, Speed, Theater, Fullscreen */}
-                <div className="flex items-center gap-3">
-                  {/* Quality Selector */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowQualityMenu((prev) => !prev)}
-                      className="flex items-center gap-1 hover:text-red-500 transition px-1.5 py-0.5 rounded text-[11px] font-semibold bg-white/10"
-                      title="Quality"
-                    >
-                      <span>{playerState.quality.toUpperCase()}</span>
-                    </button>
-
-                    {showQualityMenu && (
-                      <div className="absolute right-0 bottom-8 w-28 bg-[#1f1f1f] border border-[#333333] rounded-lg shadow-xl py-1 text-xs z-50">
-                        {['1080p', '720p', '480p', '360p', 'auto'].map((q) => (
-                          <button
-                            key={q}
-                            onClick={() => handleQualitySelect(q)}
-                            className={`w-full text-left px-3 py-1.5 hover:bg-[#333333] flex items-center justify-between ${
-                              playerState.quality === q ? 'text-red-500 font-bold' : 'text-gray-200'
-                            }`}
-                          >
-                            <span>{q.toUpperCase()}</span>
-                            {playerState.quality === q && <Check className="w-3.5 h-3.5" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Speed Selector */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowSpeedMenu((prev) => !prev)}
-                      className="hover:text-red-500 transition text-[11px] font-semibold px-1"
-                      title="Playback Speed"
-                    >
-                      {playerState.speed}x
-                    </button>
-
-                    {showSpeedMenu && (
-                      <div className="absolute right-0 bottom-8 w-24 bg-[#1f1f1f] border border-[#333333] rounded-lg shadow-xl py-1 text-xs z-50">
-                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => handleSpeedSelect(s)}
-                            className={`w-full text-left px-3 py-1.5 hover:bg-[#333333] flex items-center justify-between ${
-                              playerState.speed === s ? 'text-red-500 font-bold' : 'text-gray-200'
-                            }`}
-                          >
-                            <span>{s}x</span>
-                            {playerState.speed === s && <Check className="w-3.5 h-3.5" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Theater Mode Toggle */}
-                  <button
-                    onClick={handleToggleTheater}
-                    className="p-1 hover:text-red-500 transition hidden md:block"
-                    title={isTheater ? 'Default view (t)' : 'Theater mode (t)'}
-                  >
-                    <Tv className="w-4 h-4" />
-                  </button>
-
-                  {/* Fullscreen Button */}
-                  <button
-                    onClick={handleToggleFullscreen}
-                    className="p-1 hover:text-red-500 transition"
-                    title="Fullscreen (f)"
-                  >
-                    {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          />
 
           {/* Video Title */}
           <h1 className="text-xl font-bold tracking-tight text-black dark:text-white leading-tight">
