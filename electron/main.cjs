@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const appIcon = require('./appIcon.cjs');
@@ -146,7 +146,7 @@ let activeSessionId = 0;
 // Playback
 ipcMain.handle('player-start', async (_event, params) => {
   const sessionId = ++activeSessionId;
-  const { url, quality, startTime, volume, bounds, isOffline, isAudio, isLive } = params || {};
+  const { url, quality, startTime, volume, bounds, isOffline, isAudio, isLive, settings } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
 
   const isAudioPlayback = Boolean(
@@ -161,7 +161,7 @@ ipcMain.handle('player-start', async (_event, params) => {
     if (playerManager?.isOpen()) {
       playerManager.close();
     }
-    await mpv.start(null, url, { quality: 'audio', startTime, volume, isOffline, isAudio: true, isLive });
+    await mpv.start(null, url, { quality: 'audio', startTime, volume, isOffline, isAudio: true, isLive, settings });
     return { ok: true };
   }
 
@@ -177,7 +177,7 @@ ipcMain.handle('player-start', async (_event, params) => {
     playerManager.show();
   }
 
-  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline, isAudio: false, isLive });
+  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline, isAudio: false, isLive, settings });
   return { ok: true };
 });
 
@@ -267,9 +267,9 @@ ipcMain.handle('player-next', async () => {
 });
 
 // Downloads
-ipcMain.handle('download-start', async (_event, video, quality) => {
+ipcMain.handle('download-start', async (_event, video, quality, settings) => {
   if (!downloadManager) return { ok: false, error: 'Download manager not initialized' };
-  return downloadManager.startDownload(video, quality);
+  return downloadManager.startDownload(video, quality, settings);
 });
 
 ipcMain.handle('download-cancel', async (_event, videoId) => {
@@ -286,3 +286,31 @@ ipcMain.handle('download-get-saved', async () => {
   if (!downloadManager) return [];
   return downloadManager.getSavedList();
 });
+
+// Settings & System integration
+ipcMain.handle('settings-update', async (_event, settings) => {
+  if (mpv) mpv.updateSettings(settings);
+  if (downloadManager) downloadManager.updateSettings(settings);
+  return { ok: true };
+});
+
+ipcMain.handle('open-download-folder', async () => {
+  if (downloadManager) {
+    const dir = downloadManager.getDownloadDir();
+    shell.openPath(dir);
+  }
+  return { ok: true };
+});
+
+ipcMain.handle('select-folder-dialog', async () => {
+  if (!mainWindow) return null;
+  const res = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Select KudTube Download Directory',
+  });
+  if (!res.canceled && res.filePaths.length > 0) {
+    return res.filePaths[0];
+  }
+  return null;
+});
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, Clock, Trash2 } from 'lucide-react';
+import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, Clock, Trash2, Settings } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import kudLogo from '../assets/logo.png';
 
@@ -8,6 +8,7 @@ interface HeaderProps {
   currentQuery: string;
   isWatchPage?: boolean;
   onBackToBrowse?: () => void;
+  onOpenSettings?: () => void;
 }
 
 const SEARCH_HISTORY_KEY = 'kudtube_search_history';
@@ -32,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentQuery,
   isWatchPage,
   onBackToBrowse,
+  onOpenSettings,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [searchInput, setSearchInput] = useState(currentQuery);
@@ -323,6 +325,17 @@ export const Header: React.FC<HeaderProps> = ({
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
+
+            {/* Settings & Optimization */}
+            {onOpenSettings && (
+              <button
+                onClick={onOpenSettings}
+                title="Settings & Optimization Presets"
+                className="p-2 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition"
+              >
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            )}
 
             {/* Caption Controls - Desktop Windows / Linux only (macOS uses native traffic lights) */}
             {window.kudtubeAPI?.platform !== 'darwin' && Boolean(window.kudtubeAPI?.minimize) && (

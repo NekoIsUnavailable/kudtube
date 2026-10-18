@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Radio, Music, Gamepad2, Film, Mic, Download, ListPlus, Clock, History, Headphones } from 'lucide-react';
+import { Flame, Radio, Music, Gamepad2, Film, Mic, Download, ListPlus, Clock, History, Headphones, Settings } from 'lucide-react';
 
 export type CategoryKey =
   | 'trending'
@@ -12,7 +12,8 @@ export type CategoryKey =
   | 'offline'
   | 'playlists'
   | 'watch_later'
-  | 'history';
+  | 'history'
+  | 'settings';
 
 interface CategoryPillsProps {
   activeCategory: CategoryKey;
@@ -31,6 +32,7 @@ const CATEGORIES: { key: CategoryKey; label: string; icon: React.FC<{ className?
   { key: 'playlists', label: 'Playlists', icon: ListPlus },
   { key: 'watch_later', label: 'Watch Later', icon: Clock },
   { key: 'history', label: 'History', icon: History },
+  { key: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export const CategoryPills: React.FC<CategoryPillsProps> = ({

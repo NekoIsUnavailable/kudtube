@@ -1,29 +1,110 @@
-import type { VideoItem, Playlist } from '../types';
+import type {
+  VideoItem,
+  Playlist,
+  AppSettings,
+  PerformancePreset,
+} from '../types';
 
 const STORAGE_PLAYLISTS = 'kudtube_playlists';
 const STORAGE_WATCH_LATER = 'kudtube_watch_later';
 const STORAGE_HISTORY = 'kudtube_history';
-const STORAGE_PREFS = 'kudtube_preferences';
+const STORAGE_SETTINGS = 'kudtube_settings';
 
+export const PRESET_CONFIGS: Record<Exclude<PerformancePreset, 'custom'>, AppSettings> = {
+  low: {
+    preset: 'low',
+    defaultQuality: '480p',
+    codec: 'avc1',
+    hardwareDecoding: true,
+    skipLoopFilter: 'nonkey',
+    frameDrop: 'vo',
+    videoScaler: 'fast-bilinear',
+    ramCacheMb: 16,
+    downloadQuality: 'match_preset',
+    autoplayNext: true,
+    ambientMode: false,
+    defaultVolume: 100,
+  },
+  mid: {
+    preset: 'mid',
+    defaultQuality: '720p',
+    codec: 'auto',
+    hardwareDecoding: true,
+    skipLoopFilter: 'default',
+    frameDrop: 'vo',
+    videoScaler: 'bilinear',
+    ramCacheMb: 64,
+    downloadQuality: 'match_preset',
+    autoplayNext: true,
+    ambientMode: true,
+    defaultVolume: 100,
+  },
+  high: {
+    preset: 'high',
+    defaultQuality: '1080p',
+    codec: 'vp9',
+    hardwareDecoding: true,
+    skipLoopFilter: 'none',
+    frameDrop: 'no',
+    videoScaler: 'spline36',
+    ramCacheMb: 256,
+    downloadQuality: '1080p',
+    autoplayNext: true,
+    ambientMode: true,
+    defaultVolume: 100,
+  },
+};
+
+export const DEFAULT_SETTINGS: AppSettings = PRESET_CONFIGS.mid;
+
+export function getSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(STORAGE_SETTINGS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    }
+  } catch {}
+  return { ...DEFAULT_SETTINGS };
+}
+
+export function saveSettings(patch: Partial<AppSettings>): AppSettings {
+  const current = getSettings();
+  const next = { ...current, ...patch };
+  localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(next));
+  if (typeof window !== 'undefined' && window.kudtubeAPI?.updateSettings) {
+    window.kudtubeAPI.updateSettings(next).catch(() => {});
+  }
+  return next;
+}
+
+export function applyPreset(preset: PerformancePreset): AppSettings {
+  if (preset === 'custom') {
+    return saveSettings({ preset: 'custom' });
+  }
+  const target = PRESET_CONFIGS[preset];
+  return saveSettings({ ...target });
+}
+
+// Backward compatibility alias
 export interface Preferences {
   defaultQuality: string;
   volume: number;
 }
 
 export function getPreferences(): Preferences {
-  try {
-    const raw = localStorage.getItem(STORAGE_PREFS);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { defaultQuality: '1080p', volume: 100 };
+  const s = getSettings();
+  return { defaultQuality: s.defaultQuality, volume: s.defaultVolume };
 }
 
 export function savePreferences(prefs: Partial<Preferences>): Preferences {
-  const current = getPreferences();
-  const next = { ...current, ...prefs };
-  localStorage.setItem(STORAGE_PREFS, JSON.stringify(next));
-  return next;
+  const patch: Partial<AppSettings> = {};
+  if (prefs.defaultQuality) patch.defaultQuality = prefs.defaultQuality as any;
+  if (prefs.volume !== undefined) patch.defaultVolume = prefs.volume;
+  const s = saveSettings(patch);
+  return { defaultQuality: s.defaultQuality, volume: s.defaultVolume };
 }
+
 
 export function getPlaylists(): Playlist[] {
   try {

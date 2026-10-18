@@ -67,6 +67,11 @@ class MpvController {
     this.currentHwnd = null;
     this.currentUrl = null;
     this.currentQuality = '1080p';
+    this.settings = {};
+  }
+
+  updateSettings(settings) {
+    this.settings = { ...this.settings, ...settings };
   }
 
   emit(immediate = false) {
@@ -107,6 +112,14 @@ class MpvController {
     this.pipeName = pipeName;
     const isAudioOnly = Boolean(options.isAudio || options.quality === 'audio' || !hwnd);
 
+    const settings = options.settings || this.settings || {};
+    const ramCache = settings.ramCacheMb || 32;
+    const skipLoop = settings.skipLoopFilter || 'nonkey';
+    const frameDrop = settings.frameDrop || 'vo';
+    const scaler = settings.videoScaler || 'fast-bilinear';
+    const hwdec = settings.hardwareDecoding === false ? 'no' : 'auto-safe';
+    const codec = settings.codec || 'avc1';
+
     const args = [
       '--no-config',
       '--no-osc',
@@ -120,15 +133,15 @@ class MpvController {
       '--idle=yes',
       '--hr-seek=yes',
       '--cache=yes',
-      '--demuxer-max-bytes=32MiB',
+      `--demuxer-max-bytes=${ramCache}MiB`,
       '--demuxer-readahead-secs=20',
       '--vd-lavc-threads=0',
       '--vd-lavc-fast=yes',
-      '--vd-lavc-skiploopfilter=nonkey',
-      '--framedrop=vo',
+      `--vd-lavc-skiploopfilter=${skipLoop}`,
+      `--framedrop=${frameDrop}`,
       '--video-sync=audio',
       '--audio-buffer=0.2',
-      '--sws-scaler=fast-bilinear',
+      `--sws-scaler=${scaler}`,
       `--input-ipc-server=${pipeName}`,
       `--volume=${Math.round(options.volume ?? 100)}`,
     ];
@@ -140,7 +153,7 @@ class MpvController {
     } else {
       args.push(`--wid=${hwnd}`);
       args.push('--force-window=yes');
-      args.push('--hwdec=auto-safe');
+      args.push(`--hwdec=${hwdec}`);
       if (process.platform === 'win32') {
         args.push('--vo=gpu,direct3d');
         args.push('--gpu-api=d3d11,opengl');
@@ -153,9 +166,10 @@ class MpvController {
         args.push('--gpu-api=opengl');
         args.push('--gpu-context=x11,wayland');
       }
-      args.push('--scale=bilinear');
-      args.push('--cscale=bilinear');
-      args.push('--dscale=bilinear');
+      const scaleAlgo = scaler === 'spline36' ? 'spline36' : 'bilinear';
+      args.push(`--scale=${scaleAlgo}`);
+      args.push(`--cscale=${scaleAlgo}`);
+      args.push(`--dscale=${scaleAlgo}`);
       args.push('--background-color=#000000');
     }
 
@@ -169,13 +183,23 @@ class MpvController {
         args.push(`--script-opts=ytdl_hook-ytdl_path=${normalizedYtDlp}`);
       }
 
-      // Set YouTube quality format - prioritize H.264 (avc1) for smooth decoding on low-spec CPUs (Atom N455 / GMA 3150)
+      // Configure codec matching: 'avc1' (H.264), 'vp9', or 'auto'
+      const codecPrefix = codec === 'avc1' ? '[vcodec^=avc1]' : codec === 'vp9' ? '[vcodec^=vp9]' : '';
+      const audioPrefix = codec === 'avc1' ? '[acodec^=mp4a]' : '';
+
+      const buildFmt = (h) => {
+        if (!codecPrefix) {
+          return `bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
+        }
+        return `bestvideo[height<=${h}]${codecPrefix}+bestaudio${audioPrefix}/bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
+      };
+
       const qualityFormats = {
-        '1080p': 'bestvideo[height<=1080][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
-        '720p': 'bestvideo[height<=720][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best',
-        '480p': 'bestvideo[height<=480][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best',
-        '360p': 'bestvideo[height<=360][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best',
-        'auto': 'bestvideo[height<=720][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=720]+bestaudio/best',
+        '1080p': buildFmt(1080),
+        '720p': buildFmt(720),
+        '480p': buildFmt(480),
+        '360p': buildFmt(360),
+        'auto': buildFmt(720),
       };
       const format = qualityFormats[this.currentQuality] || qualityFormats['720p'];
       args.push(`--ytdl-format=${format}`);

@@ -11,12 +11,14 @@ import { PlaylistsView } from './components/PlaylistsView';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import { GlobalMusicBar } from './components/GlobalMusicBar';
 import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
+import { SettingsView } from './components/SettingsView';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
 import { Home, Headphones, Download, ListPlus, History } from 'lucide-react';
 import {
   getWatchLater,
   getHistory,
   appendHistory,
+  getSettings,
 } from './utils/storage';
 import { fetchCategoryFeedFallback, searchVideosFallback } from './utils/apiFallback';
 
@@ -27,7 +29,8 @@ export type ViewType =
   | 'music_offline'
   | 'playlists'
   | 'watch_later'
-  | 'history';
+  | 'history'
+  | 'settings';
 
 export function KudTubeApp() {
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -73,6 +76,10 @@ export function KudTubeApp() {
     if (category === 'history') {
       setCurrentView('history');
       setVideos(getHistory());
+      return;
+    }
+    if (category === 'settings') {
+      setCurrentView('settings');
       return;
     }
 
@@ -161,7 +168,7 @@ export function KudTubeApp() {
   const handleDownload = async (video: VideoItem, quality: string) => {
     setDownloadingIds((prev) => ({ ...prev, [video.id]: 0 }));
     if (window.kudtubeAPI?.startDownload) {
-      await window.kudtubeAPI.startDownload(video, quality);
+      await window.kudtubeAPI.startDownload(video, quality, getSettings());
     }
   };
 
@@ -172,6 +179,10 @@ export function KudTubeApp() {
         currentQuery={searchQuery}
         isWatchPage={currentView === 'watch'}
         onBackToBrowse={handleBackToBrowse}
+        onOpenSettings={() => {
+          setActiveCategory('settings');
+          setCurrentView('settings');
+        }}
       />
 
       {currentView === 'watch' && currentVideo ? (
@@ -211,6 +222,10 @@ export function KudTubeApp() {
               }}
               onPlayVideo={(v, pl) => handlePlayVideo(v, pl)}
             />
+          )}
+
+          {currentView === 'settings' && (
+            <SettingsView onBack={handleBackToBrowse} />
           )}
 
           {(currentView === 'home' || currentView === 'watch_later' || currentView === 'history') && (

@@ -20,10 +20,19 @@ class DownloadManager {
     this.getWebContents = getWebContents;
     this.downloadsFile = path.join(app.getPath('userData'), 'downloads.json');
     this.activeDownloads = new Map(); // id -> child process
+    this.settings = {};
+    this.ensureDir(this.getDownloadDir());
+  }
+
+  updateSettings(settings) {
+    this.settings = { ...this.settings, ...settings };
     this.ensureDir(this.getDownloadDir());
   }
 
   getDownloadDir() {
+    if (this.settings.downloadFolder && fs.existsSync(this.settings.downloadFolder)) {
+      return this.settings.downloadFolder;
+    }
     try {
       return path.join(app.getPath('videos'), 'KudTube');
     } catch {
@@ -62,13 +71,27 @@ class DownloadManager {
     return list.filter((item) => item.filePath && fs.existsSync(item.filePath));
   }
 
-  startDownload(video, quality = '1080p') {
+  startDownload(video, quality = '1080p', settings = null) {
     return new Promise((resolve) => {
       const videoId = video.id;
       if (!videoId) return resolve({ ok: false, error: 'Missing video ID' });
 
       if (this.activeDownloads.has(videoId)) {
         return resolve({ ok: false, error: 'Video is already being downloaded' });
+      }
+
+      const activeSettings = settings || this.settings || {};
+      let resolvedQuality = quality;
+      if (!resolvedQuality || resolvedQuality === 'match_preset') {
+        if (activeSettings.preset === 'low') {
+          resolvedQuality = '480p';
+        } else if (activeSettings.preset === 'mid') {
+          resolvedQuality = '720p';
+        } else if (activeSettings.preset === 'high') {
+          resolvedQuality = '1080p';
+        } else {
+          resolvedQuality = activeSettings.defaultQuality || '720p';
+        }
       }
 
       const outDir = this.getDownloadDir();
@@ -85,13 +108,13 @@ class DownloadManager {
         extraArgs.push('--ffmpeg-location', ffmpegPath);
       }
 
-      if (quality === '720p') {
-        formatArg = 'bv*[height<=720][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=720]+ba/b[height<=720]';
-      } else if (quality === '480p') {
-        formatArg = 'bv*[height<=480][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=480]+ba/b[height<=480]';
-      } else if (quality === '360p') {
-        formatArg = 'bv*[height<=360][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=360]+ba/b[height<=360]';
-      } else if (quality === 'audio' || quality === 'mp3') {
+      if (resolvedQuality === '720p') {
+        formatArg = 'bv*[height<=720][vcodec^=avc1]+ba[acodec^=mp4a]/b[height<=720][ext=mp4]/bv*[height<=720]+ba/b[height<=720]';
+      } else if (resolvedQuality === '480p') {
+        formatArg = 'bv*[height<=480][vcodec^=avc1]+ba[acodec^=mp4a]/b[height<=480][ext=mp4]/bv*[height<=480]+ba/b[height<=480]';
+      } else if (resolvedQuality === '360p') {
+        formatArg = 'bv*[height<=360][vcodec^=avc1]+ba[acodec^=mp4a]/b[height<=360][ext=mp4]/bv*[height<=360]+ba/b[height<=360]';
+      } else if (resolvedQuality === 'audio' || resolvedQuality === 'mp3') {
         extraArgs.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
         formatArg = 'ba/b';
       }

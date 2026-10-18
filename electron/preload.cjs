@@ -37,7 +37,7 @@ contextBridge.exposeInMainWorld('kudtubeAPI', {
   },
 
   // Downloads
-  startDownload: (video, quality) => ipcRenderer.invoke('download-start', video, quality),
+  startDownload: (video, quality, settings) => ipcRenderer.invoke('download-start', video, quality, settings),
   cancelDownload: (videoId) => ipcRenderer.invoke('download-cancel', videoId),
   deleteDownload: (videoId) => ipcRenderer.invoke('download-delete', videoId),
   getSavedDownloads: () => ipcRenderer.invoke('download-get-saved'),
@@ -46,6 +46,11 @@ contextBridge.exposeInMainWorld('kudtubeAPI', {
     ipcRenderer.on('download-progress', handler);
     return () => ipcRenderer.removeListener('download-progress', handler);
   },
+
+  // Settings & Storage Integration
+  updateSettings: (settings) => ipcRenderer.invoke('settings-update', settings),
+  openDownloadFolder: () => ipcRenderer.invoke('open-download-folder'),
+  selectFolderDialog: () => ipcRenderer.invoke('select-folder-dialog'),
 
   // Window Controls & Platform
   platform: process.platform,

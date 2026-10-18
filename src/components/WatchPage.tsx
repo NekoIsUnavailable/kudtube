@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import type { VideoItem, PlayerState, Playlist } from '../types';
 import { formatDuration, formatViews } from '../utils/format';
-import { toggleWatchLater, isWatchLater } from '../utils/storage';
+import { toggleWatchLater, isWatchLater, getSettings } from '../utils/storage';
 
 interface WatchPageProps {
   video: VideoItem;
@@ -125,14 +125,19 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       const targetWidth = Math.max(Math.round(rect.width), 10);
       const targetHeight = Math.round(targetWidth * (9 / 16));
 
-      const preferredQuality = localStorage.getItem('kudtube_preferred_quality') || '720p';
+      const appSettings = getSettings();
+      const preferredQuality =
+        appSettings.defaultQuality === 'auto'
+          ? '720p'
+          : appSettings.defaultQuality || localStorage.getItem('kudtube_preferred_quality') || '720p';
 
       await window.kudtubeAPI?.startPlayer({
         url: video.url || `https://www.youtube.com/watch?v=${video.id}`,
         quality: preferredQuality,
-        volume: 100,
+        volume: appSettings.defaultVolume ?? 100,
         isOffline: Boolean(video.isOffline || video.filePath),
         isLive: Boolean(video.isLive),
+        settings: appSettings,
         bounds: {
           x: targetX,
           y: targetY,
@@ -180,9 +185,12 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     };
   }, [video.id, video.url, updatePlayerBounds]);
 
-  // Auto-advance to next video on EOF
+  // Auto-advance to next video on EOF (respects settings.autoplayNext)
   useEffect(() => {
     if (playerState.eof) {
+      const appSettings = getSettings();
+      if (!appSettings.autoplayNext) return;
+
       if (playlist && playlist.videos.length > 0) {
         const curIdx = playlist.videos.findIndex((v) => v.id === video.id);
         if (curIdx >= 0 && curIdx < playlist.videos.length - 1) {
