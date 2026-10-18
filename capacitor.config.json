@@ -2,7 +2,6 @@
   "appId": "com.kudtube.app",
   "appName": "KudTube",
   "webDir": "dist",
-  "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"
   },

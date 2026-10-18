@@ -68,11 +68,6 @@ jobs:
             release_kudtube/*.dmg
             release_kudtube/*.AppImage
             release_kudtube/*.deb
-            ../release_kudtube/*.exe
-            ../release_kudtube/*.zip
-            ../release_kudtube/*.dmg
-            ../release_kudtube/*.AppImage
-            ../release_kudtube/*.deb
           if-no-files-found: ignore
 
   # -------------------------------------------------------------
@@ -108,7 +103,7 @@ jobs:
         run: npm run build
 
       - name: Sync Capacitor Android
-        run: npx cap sync android
+        run: npx --yes @capacitor/cli sync android
 
       - name: Build Android Debug APK
         working-directory: android
