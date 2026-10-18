@@ -46,6 +46,7 @@ function initialState() {
     loaded: false,
     error: null,
     quality: '1080p',
+    isOffline: false,
   };
 }
 
@@ -122,21 +123,26 @@ class MpvController {
       `--volume=${Math.round(options.volume ?? 100)}`,
     ];
 
-    const ytDlpPath = getYtDlpExecutablePath();
-    if (ytDlpPath) {
-      args.push(`--script-opts=ytdl_hook-ytdl_path=${ytDlpPath}`);
-    }
+    const isLocalFile = Boolean(options.isOffline || fs.existsSync(urlOrPath) || !urlOrPath.startsWith('http'));
+    this.state.isOffline = isLocalFile;
 
-    // Set YouTube quality format
-    const qualityFormats = {
-      '1080p': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-      '720p': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-      '480p': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
-      '360p': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
-      'auto': 'bestvideo+bestaudio/best',
-    };
-    const format = qualityFormats[this.currentQuality] || qualityFormats['1080p'];
-    args.push(`--ytdl-format=${format}`);
+    if (!isLocalFile) {
+      const ytDlpPath = getYtDlpExecutablePath();
+      if (ytDlpPath) {
+        args.push(`--script-opts=ytdl_hook-ytdl_path=${ytDlpPath}`);
+      }
+
+      // Set YouTube quality format
+      const qualityFormats = {
+        '1080p': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+        '720p': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+        '480p': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
+        '360p': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
+        'auto': 'bestvideo+bestaudio/best',
+      };
+      const format = qualityFormats[this.currentQuality] || qualityFormats['1080p'];
+      args.push(`--ytdl-format=${format}`);
+    }
 
     if (options.startTime && options.startTime > 0) {
       args.push(`--start=${options.startTime.toFixed(2)}`);

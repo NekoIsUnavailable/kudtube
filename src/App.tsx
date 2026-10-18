@@ -5,6 +5,7 @@ import { CategoryPills, type CategoryKey } from './components/CategoryPills';
 import { VideoGrid } from './components/VideoGrid';
 import { WatchPage } from './components/WatchPage';
 import { DownloadsView } from './components/DownloadsView';
+import { MusicView } from './components/MusicView';
 import { PlaylistsView } from './components/PlaylistsView';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
@@ -14,8 +15,18 @@ import {
   appendHistory,
 } from './utils/storage';
 
+export type ViewType =
+  | 'home'
+  | 'watch'
+  | 'offline'
+  | 'music_offline'
+  | 'playlists'
+  | 'watch_later'
+  | 'history';
+
 export function KudTubeApp() {
-  const [currentView, setCurrentView] = useState<'home' | 'watch' | 'offline' | 'playlists' | 'watch_later' | 'history'>('home');
+  const [currentView, setCurrentView] = useState<ViewType>('home');
+  const [previousView, setPreviousView] = useState<ViewType>('home');
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('trending');
   const [searchQuery, setSearchQuery] = useState('');
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -36,6 +47,10 @@ export function KudTubeApp() {
     setActiveCategory(category);
     if (category === 'offline') {
       setCurrentView('offline');
+      return;
+    }
+    if (category === 'music_offline') {
+      setCurrentView('music_offline');
       return;
     }
     if (category === 'playlists') {
@@ -106,10 +121,16 @@ export function KudTubeApp() {
 
   // Play Video
   const handlePlayVideo = (video: VideoItem, playlist?: Playlist | null) => {
+    setPreviousView(currentView === 'watch' ? previousView : currentView);
     appendHistory(video);
     setCurrentVideo(video);
     setCurrentPlaylist(playlist || null);
     setCurrentView('watch');
+  };
+
+  // Back to previous browse page
+  const handleBackToBrowse = () => {
+    setCurrentView(previousView || 'home');
   };
 
   // Start Download
@@ -126,7 +147,7 @@ export function KudTubeApp() {
         onSearch={handleSearch}
         currentQuery={searchQuery}
         isWatchPage={currentView === 'watch'}
-        onBackToBrowse={() => setCurrentView('home')}
+        onBackToBrowse={handleBackToBrowse}
       />
 
       {currentView === 'watch' && currentVideo ? (
@@ -147,6 +168,10 @@ export function KudTubeApp() {
 
           {currentView === 'offline' && (
             <DownloadsView onPlay={(v) => handlePlayVideo(v)} />
+          )}
+
+          {currentView === 'music_offline' && (
+            <MusicView onPlaySong={(v) => handlePlayVideo(v)} />
           )}
 
           {currentView === 'playlists' && (

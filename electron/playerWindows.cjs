@@ -115,15 +115,8 @@ class PlayerWindowManager {
   }
 
   setBounds(rect) {
-    if (!rect) return;
+    if (!rect || !this.isOpen() || this.isFullscreen) return;
     this.targetBounds = rect;
-
-    if (!this.isOpen()) {
-      this.createWindow(rect);
-      return;
-    }
-
-    if (this.isFullscreen) return;
 
     const contentBounds = this.mainWindow.getContentBounds();
     const targetX = Math.round(contentBounds.x + rect.x);
@@ -137,15 +130,12 @@ class PlayerWindowManager {
       width: targetWidth,
       height: targetHeight,
     });
-
-    if (!this.playerWindow.isVisible()) {
-      this.playerWindow.show();
-    }
   }
 
   setFullScreen(fullscreen) {
-    if (!this.isOpen()) return;
+    if (!this.isOpen() || this.mainWindow.isDestroyed()) return;
     this.isFullscreen = Boolean(fullscreen);
+    this.mainWindow.setFullScreen(this.isFullscreen);
     this.playerWindow.setFullScreen(this.isFullscreen);
 
     if (!this.isFullscreen && this.targetBounds) {
@@ -154,6 +144,8 @@ class PlayerWindowManager {
   }
 
   close() {
+    this.targetBounds = null;
+    this.isFullscreen = false;
     if (this.isOpen()) {
       this.playerWindow.destroy();
       this.playerWindow = null;

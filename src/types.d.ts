@@ -10,6 +10,7 @@ export interface VideoItem {
   uploadDate?: string | null;
   description?: string;
   isOffline?: boolean;
+  isAudio?: boolean;
   filePath?: string;
 }
 
@@ -26,6 +27,7 @@ export interface PlayerState {
   loaded: boolean;
   error: string | null;
   quality: string;
+  isOffline?: boolean;
 }
 
 export interface DownloadItem {
@@ -38,6 +40,7 @@ export interface DownloadItem {
   filePath: string;
   fileSize: number;
   quality: string;
+  isAudio?: boolean;
   downloadedAt: number;
 }
 
@@ -64,7 +67,7 @@ declare global {
     kudtubeAPI: {
       searchVideos: (query: string, limit?: number) => Promise<{ ok: boolean; title?: string | null; results: VideoItem[]; error?: string }>;
       getCategoryFeed: (category: string, limit?: number) => Promise<{ ok: boolean; results: VideoItem[]; error?: string }>;
-      startPlayer: (params: { url: string; quality?: string; startTime?: number; volume?: number; bounds?: { x: number; y: number; width: number; height: number } }) => Promise<{ ok: boolean; error?: string }>;
+      startPlayer: (params: { url: string; quality?: string; startTime?: number; volume?: number; bounds?: { x: number; y: number; width: number; height: number }; isOffline?: boolean }) => Promise<{ ok: boolean; error?: string }>;
       syncPlayerBounds: (bounds: { x: number; y: number; width: number; height: number }) => Promise<{ ok: boolean }>;
       stopPlayer: () => Promise<{ ok: boolean }>;
       playerPlay: () => Promise<{ ok: boolean }>;

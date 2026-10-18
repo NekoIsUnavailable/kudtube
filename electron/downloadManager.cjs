@@ -66,10 +66,25 @@ class DownloadManager {
       let formatArg = 'bv*[height<=1080]+ba/b[height<=1080]';
       const extraArgs = [];
 
+function getFfmpegPath() {
+  const bundled = app.isPackaged
+    ? path.join(process.resourcesPath, 'mpv', 'ffmpeg.exe')
+    : path.join(__dirname, 'bin', 'mpv', 'ffmpeg.exe');
+  if (fs.existsSync(bundled)) return bundled;
+  const nodeFfmpeg = path.join(__dirname, '../node_modules/ffmpeg-static/ffmpeg.exe');
+  if (fs.existsSync(nodeFfmpeg)) return nodeFfmpeg;
+  return null;
+}
+
+      const ffmpegPath = getFfmpegPath();
+      if (ffmpegPath) {
+        extraArgs.push('--ffmpeg-location', ffmpegPath);
+      }
+
       if (quality === '720p') {
         formatArg = 'bv*[height<=720]+ba/b[height<=720]';
-      } else if (quality === 'audio') {
-        extraArgs.push('-x', '--audio-format', 'mp3');
+      } else if (quality === 'audio' || quality === 'mp3') {
+        extraArgs.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
         formatArg = 'ba/b';
       }
 
@@ -148,7 +163,10 @@ class DownloadManager {
         // If savedFilePath wasn't caught directly, scan folder for matching videoId
         if (!savedFilePath || !fs.existsSync(savedFilePath)) {
           const files = fs.readdirSync(outDir);
-          const found = files.find((f) => f.includes(`[${videoId}]`));
+          const isAudio = quality === 'audio' || quality === 'mp3';
+          const found = isAudio
+            ? (files.find((f) => f.includes(`[${videoId}]`) && (f.endsWith('.mp3') || f.endsWith('.m4a'))) || files.find((f) => f.includes(`[${videoId}]`)))
+            : (files.find((f) => f.includes(`[${videoId}]`) && (f.endsWith('.mp4') || f.endsWith('.mkv'))) || files.find((f) => f.includes(`[${videoId}]`)));
           if (found) {
             savedFilePath = path.join(outDir, found);
           }
@@ -167,6 +185,7 @@ class DownloadManager {
           filePath: savedFilePath,
           fileSize,
           quality,
+          isAudio: quality === 'audio' || quality === 'mp3',
           downloadedAt: Date.now(),
         };
 

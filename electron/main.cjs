@@ -48,13 +48,13 @@ function createWindow() {
   };
 
   mainWindow.on('move', () => {
-    if (playerManager && playerManager.targetBounds) {
+    if (playerManager?.isOpen() && playerManager.targetBounds) {
       playerManager.setBounds(playerManager.targetBounds);
     }
   });
 
   mainWindow.on('resize', () => {
-    if (playerManager && playerManager.targetBounds) {
+    if (playerManager?.isOpen() && playerManager.targetBounds) {
       playerManager.setBounds(playerManager.targetBounds);
     }
   });
@@ -134,21 +134,25 @@ ipcMain.handle('get-category-feed', async (_event, category, limit) => {
 
 // Playback
 ipcMain.handle('player-start', async (_event, params) => {
-  const { url, quality, startTime, volume, bounds } = params || {};
+  const { url, quality, startTime, volume, bounds, isOffline } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
 
   if (bounds && playerManager) {
     playerManager.targetBounds = bounds;
-    playerManager.setBounds(bounds);
   }
 
   const hwnd = playerManager.getNativeHandle();
-  await mpv.start(hwnd, url, { quality, startTime, volume });
+  if (bounds && playerManager) {
+    playerManager.setBounds(bounds);
+    playerManager.show();
+  }
+
+  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline });
   return { ok: true };
 });
 
 ipcMain.handle('player-sync-bounds', async (_event, bounds) => {
-  if (playerManager && bounds) {
+  if (playerManager?.isOpen() && bounds) {
     playerManager.targetBounds = bounds;
     playerManager.setBounds(bounds);
   }
@@ -157,7 +161,7 @@ ipcMain.handle('player-sync-bounds', async (_event, bounds) => {
 
 ipcMain.handle('player-stop', async () => {
   await mpv.close();
-  if (playerManager) playerManager.hide();
+  if (playerManager) playerManager.close();
   return { ok: true };
 });
 

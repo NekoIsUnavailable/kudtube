@@ -134,6 +134,12 @@ export const PlayerOverlay: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [playerState, isFullscreen]);
 
+  const progressPercent = playerState.duration > 0
+    ? Math.min(100, Math.max(0, (playerState.timePos / playerState.duration) * 100))
+    : 0;
+
+  const volumePercent = playerState.mute ? 0 : playerState.volume;
+
   return (
     <div
       onMouseMove={handleMouseMove}
@@ -162,7 +168,7 @@ export const PlayerOverlay: React.FC = () => {
           controlsVisible || playerState.pause ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        {/* Scrubber Range Bar */}
+        {/* Scrubber Range Bar with Red Progress Trail */}
         <div className="relative flex items-center group/scrubber cursor-pointer">
           <input
             type="range"
@@ -170,7 +176,10 @@ export const PlayerOverlay: React.FC = () => {
             max={playerState.duration || 100}
             value={playerState.timePos || 0}
             onChange={handleSeek}
-            className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-red-600 hover:h-1.5 transition-all"
+            style={{
+              background: `linear-gradient(to right, #ff0000 0%, #ff0000 ${progressPercent}%, rgba(255, 255, 255, 0.25) ${progressPercent}%, rgba(255, 255, 255, 0.25) 100%)`,
+            }}
+            className="w-full h-1 appearance-none cursor-pointer rounded-lg accent-red-600 hover:h-1.5 transition-all"
           />
         </div>
 
@@ -208,7 +217,10 @@ export const PlayerOverlay: React.FC = () => {
                 max={100}
                 value={playerState.mute ? 0 : playerState.volume}
                 onChange={handleVolume}
-                className="w-16 h-1 bg-white/30 rounded appearance-none cursor-pointer accent-white"
+                style={{
+                  background: `linear-gradient(to right, #ffffff 0%, #ffffff ${volumePercent}%, rgba(255, 255, 255, 0.25) ${volumePercent}%, rgba(255, 255, 255, 0.25) 100%)`,
+                }}
+                className="w-16 h-1 rounded appearance-none cursor-pointer accent-white"
               />
             </div>
 
@@ -219,33 +231,35 @@ export const PlayerOverlay: React.FC = () => {
 
           {/* Right: Quality, Speed, Fullscreen */}
           <div className="flex items-center gap-3">
-            {/* Quality Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowQualityMenu((prev) => !prev)}
-                className="flex items-center gap-1 hover:text-red-500 transition px-1.5 py-0.5 rounded text-[11px] font-semibold bg-white/10"
-                title="Video Quality"
-              >
-                <span>{playerState.quality.toUpperCase()}</span>
-              </button>
+            {/* Quality Menu (Hidden for offline / downloaded files) */}
+            {!playerState.isOffline && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowQualityMenu((prev) => !prev)}
+                  className="flex items-center gap-1 hover:text-red-500 transition px-1.5 py-0.5 rounded text-[11px] font-semibold bg-white/10"
+                  title="Video Quality"
+                >
+                  <span>{playerState.quality.toUpperCase()}</span>
+                </button>
 
-              {showQualityMenu && (
-                <div className="absolute right-0 bottom-8 w-28 bg-[#1f1f1f] border border-[#333333] rounded-lg shadow-2xl py-1 text-xs z-50">
-                  {['1080p', '720p', '480p', '360p', 'auto'].map((q) => (
-                    <button
-                      key={q}
-                      onClick={() => handleQuality(q)}
-                      className={`w-full text-left px-3 py-1.5 hover:bg-[#333333] flex items-center justify-between ${
-                        playerState.quality === q ? 'text-red-500 font-bold' : 'text-gray-200'
-                      }`}
-                    >
-                      <span>{q.toUpperCase()}</span>
-                      {playerState.quality === q && <Check className="w-3.5 h-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                {showQualityMenu && (
+                  <div className="absolute right-0 bottom-8 w-28 bg-[#1f1f1f] border border-[#333333] rounded-lg shadow-2xl py-1 text-xs z-50">
+                    {['1080p', '720p', '480p', '360p', 'auto'].map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => handleQuality(q)}
+                        className={`w-full text-left px-3 py-1.5 hover:bg-[#333333] flex items-center justify-between ${
+                          playerState.quality === q ? 'text-red-500 font-bold' : 'text-gray-200'
+                        }`}
+                      >
+                        <span>{q.toUpperCase()}</span>
+                        {playerState.quality === q && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Speed Menu */}
             <div className="relative">

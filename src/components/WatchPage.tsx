@@ -50,9 +50,19 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   const [inWatchLater, setInWatchLater] = useState(() => isWatchLater(video.id));
   const [descExpanded, setDescExpanded] = useState(false);
 
-  // Sync player position with Electron native MPV window
+  // Sync player position with Electron native MPV window without triggering effect restarts
+  const isFullscreenRef = useRef(false);
+  isFullscreenRef.current = isFullscreen;
+
+  const playlistRef = useRef(playlist);
+  playlistRef.current = playlist;
+  const upNextRef = useRef(upNextVideos);
+  upNextRef.current = upNextVideos;
+  const onSelectRef = useRef(onSelectVideo);
+  onSelectRef.current = onSelectVideo;
+
   const updatePlayerBounds = useCallback(() => {
-    if (!containerRef.current || isFullscreen) return;
+    if (!containerRef.current || isFullscreenRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     window.kudtubeAPI?.syncPlayerBounds({
       x: rect.left,
@@ -60,7 +70,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       width: rect.width,
       height: rect.height,
     });
-  }, [isFullscreen]);
+  }, []);
 
   // Start playback on mount or when video changes
   useEffect(() => {
@@ -77,6 +87,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
         url: video.url || `https://www.youtube.com/watch?v=${video.id}`,
         quality: '1080p',
         volume: 100,
+        isOffline: Boolean(video.isOffline || video.filePath),
         bounds: {
           x: rect.left,
           y: rect.top,
@@ -90,15 +101,16 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       });
 
       unsubNext = window.kudtubeAPI?.onPlayerNext?.(() => {
-        if (playlist && playlist.videos.length > 0) {
-          const curIdx = playlist.videos.findIndex((v) => v.id === video.id);
-          if (curIdx >= 0 && curIdx < playlist.videos.length - 1) {
-            onSelectVideo(playlist.videos[curIdx + 1]);
+        const curPl = playlistRef.current;
+        if (curPl && curPl.videos.length > 0) {
+          const curIdx = curPl.videos.findIndex((v) => v.id === video.id);
+          if (curIdx >= 0 && curIdx < curPl.videos.length - 1) {
+            onSelectRef.current(curPl.videos[curIdx + 1]);
             return;
           }
         }
-        if (upNextVideos.length > 0) {
-          onSelectVideo(upNextVideos[0]);
+        if (upNextRef.current.length > 0) {
+          onSelectRef.current(upNextRef.current[0]);
         }
       });
 
@@ -124,7 +136,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       if (unsubFs) unsubFs();
       window.kudtubeAPI?.stopPlayer();
     };
-  }, [video.id, video.url, updatePlayerBounds, playlist, upNextVideos, onSelectVideo]);
+  }, [video.id, video.url, updatePlayerBounds]);
 
   // Auto-advance to next video on EOF
   useEffect(() => {
@@ -211,15 +223,21 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                 <span>{inWatchLater ? 'Saved' : 'Watch Later'}</span>
               </button>
 
-              {/* Download Offline Button */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowDownloadMenu((prev) => !prev)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
-                </button>
+              {/* Download Offline Button / Saved Badge */}
+              {video.isOffline ? (
+                <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 select-none">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved Offline</span>
+                </div>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDownloadMenu((prev) => !prev)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
 
                 {showDownloadMenu && (
                   <div className="absolute right-0 top-10 w-44 bg-white dark:bg-[#222222] border border-gray-200 dark:border-[#333333] rounded-xl shadow-2xl py-1.5 z-50 text-xs font-medium">
@@ -253,8 +271,9 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                   </div>
                 )}
               </div>
+            )}
 
-              {/* Add to Playlist */}
+            {/* Add to Playlist */}
               {onAddToPlaylist && (
                 <button
                   onClick={() => onAddToPlaylist(video)}
