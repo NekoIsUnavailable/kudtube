@@ -121,6 +121,9 @@ class MpvController {
       '--vd-lavc-fast=yes',
       '--vd-lavc-skiploopfilter=nonkey',
       '--framedrop=vo',
+      '--video-sync=audio',
+      '--audio-buffer=0.2',
+      '--sws-scaler=fast-bilinear',
       `--input-ipc-server=${pipeName}`,
       `--volume=${Math.round(options.volume ?? 100)}`,
     ];

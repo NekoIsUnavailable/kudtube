@@ -40,9 +40,8 @@ class PlayerWindowManager {
       height: Math.round(contentBounds.width * 0.65 * (9 / 16)),
     };
 
-    const clampedY = Math.max(HEADER_HEIGHT, bounds.y);
     const targetX = Math.round(contentBounds.x + bounds.x);
-    const targetY = Math.round(contentBounds.y + clampedY);
+    const targetY = Math.round(contentBounds.y + bounds.y);
     const targetWidth = Math.max(Math.round(bounds.width), 10);
     const targetHeight = Math.max(Math.round(bounds.height), 10);
 
@@ -122,16 +121,16 @@ class PlayerWindowManager {
 
     const HEADER_HEIGHT = 56;
     const contentBounds = this.mainWindow.getContentBounds();
-    const clampedY = Math.max(HEADER_HEIGHT, rect.y);
     const targetX = Math.round(contentBounds.x + rect.x);
-    const targetY = Math.round(contentBounds.y + clampedY);
+    const targetY = Math.round(contentBounds.y + rect.y);
     const targetWidth = Math.max(Math.round(rect.width), 10);
-    const targetHeight = Math.max(
+    const targetHeight = rect.height === 0 ? 0 : Math.max(
       Math.round(rect.height || (targetWidth * 9) / 16),
       Math.round((targetWidth * 9) / 16)
     );
 
-    if (targetHeight <= 0 || targetWidth <= 0) {
+    // If height is 0 or video has completely scrolled off-screen above the header:
+    if (rect.height === 0 || targetHeight <= 0 || targetWidth <= 0 || (rect.y + targetHeight <= HEADER_HEIGHT)) {
       if (this.playerWindow.isVisible()) {
         this.playerWindow.hide();
       }
@@ -148,6 +147,21 @@ class PlayerWindowManager {
       width: targetWidth,
       height: targetHeight,
     });
+
+    // Smoothly clip any portion that scrolls under the top header without squishing or distorting aspect ratio
+    if (typeof this.playerWindow.setShape === 'function') {
+      const overlap = HEADER_HEIGHT - rect.y;
+      if (overlap > 0 && overlap < targetHeight) {
+        this.playerWindow.setShape([{
+          x: 0,
+          y: overlap,
+          width: targetWidth,
+          height: targetHeight - overlap,
+        }]);
+      } else {
+        this.playerWindow.setShape([]);
+      }
+    }
   }
 
   setFullScreen(fullscreen) {

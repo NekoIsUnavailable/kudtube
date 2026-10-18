@@ -65,3 +65,14 @@ html.player-window #root {
 .animate-eq-3 {
   animation: eq-bounce 0.75s ease-in-out infinite 0.5s;
 }
+
+/* Netbook / Low-Spec GPU Optimization: Disable expensive CPU software blur passes on GMA 3150 */
+*, *::before, *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Lazy render off-screen images to save memory and avoid decoding pressure */
+img {
+  content-visibility: auto;
+}

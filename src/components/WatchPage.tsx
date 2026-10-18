@@ -70,8 +70,22 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     const rect = containerRef.current.getBoundingClientRect();
     const HEADER_HEIGHT = 56;
 
+    // When the video container has completely scrolled off-screen above the header:
+    if (rect.bottom <= HEADER_HEIGHT) {
+      if (lastBoundsRef.current?.height !== 0) {
+        lastBoundsRef.current = { x: Math.round(rect.left), y: Math.round(rect.top), width: Math.round(rect.width), height: 0 };
+        window.kudtubeAPI?.syncPlayerBounds({
+          x: Math.round(rect.left),
+          y: Math.round(rect.top),
+          width: Math.max(Math.round(rect.width), 10),
+          height: 0,
+        });
+      }
+      return;
+    }
+
     const targetX = Math.round(rect.left);
-    const targetY = Math.max(HEADER_HEIGHT, Math.round(rect.top));
+    const targetY = Math.round(rect.top);
     const targetWidth = Math.max(Math.round(rect.width), 10);
     const targetHeight = Math.round(targetWidth * (9 / 16));
 
@@ -106,9 +120,8 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       window.scrollTo({ top: 0, behavior: 'instant' });
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const HEADER_HEIGHT = 56;
       const targetX = Math.round(rect.left);
-      const targetY = Math.max(HEADER_HEIGHT, Math.round(rect.top));
+      const targetY = Math.round(rect.top);
       const targetWidth = Math.max(Math.round(rect.width), 10);
       const targetHeight = Math.round(targetWidth * (9 / 16));
 
@@ -152,14 +165,11 @@ export const WatchPage: React.FC<WatchPageProps> = ({
 
     start();
 
-    // Listen to resize and scroll to sync window position
-    window.addEventListener('resize', updatePlayerBounds);
-    window.addEventListener('scroll', updatePlayerBounds);
-
-    const interval = setInterval(updatePlayerBounds, 500);
+    // Listen to resize and scroll with passive listeners (zero polling overhead for Atom netbook)
+    window.addEventListener('resize', updatePlayerBounds, { passive: true });
+    window.addEventListener('scroll', updatePlayerBounds, { passive: true });
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('resize', updatePlayerBounds);
       window.removeEventListener('scroll', updatePlayerBounds);
       if (unsubState) unsubState();
@@ -302,10 +312,10 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       >
         {/* Left Column: Player & Video Info */}
         <div className="flex-1 min-w-0 flex flex-col gap-3 sm:gap-4">
-          {/* Video Player Box Anchor (Edge-to-edge on mobile, rounded on desktop, sticky below header) */}
+          {/* Video Player Box Anchor (Edge-to-edge on mobile, rounded on desktop, naturally scrolls with page) */}
           <div
             ref={containerRef}
-            className={`sticky top-14 z-20 aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
+            className={`relative aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-lg transition-all ${
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
           />
