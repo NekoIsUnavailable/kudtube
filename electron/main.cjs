@@ -134,8 +134,24 @@ ipcMain.handle('get-category-feed', async (_event, category, limit) => {
 
 // Playback
 ipcMain.handle('player-start', async (_event, params) => {
-  const { url, quality, startTime, volume, bounds, isOffline } = params || {};
+  const { url, quality, startTime, volume, bounds, isOffline, isAudio } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
+
+  const isAudioPlayback = Boolean(
+    isAudio ||
+    quality === 'audio' ||
+    !bounds ||
+    (bounds.width === 0 && bounds.height === 0)
+  );
+
+  if (isAudioPlayback) {
+    // AUDIO-ONLY: Close playerWindow completely so no ghost window or black overlay appears!
+    if (playerManager?.isOpen()) {
+      playerManager.close();
+    }
+    await mpv.start(null, url, { quality: 'audio', startTime, volume, isOffline, isAudio: true });
+    return { ok: true };
+  }
 
   if (bounds && playerManager) {
     playerManager.targetBounds = bounds;
@@ -147,12 +163,16 @@ ipcMain.handle('player-start', async (_event, params) => {
     playerManager.show();
   }
 
-  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline });
+  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline, isAudio: false });
   return { ok: true };
 });
 
 ipcMain.handle('player-sync-bounds', async (_event, bounds) => {
   if (playerManager?.isOpen() && bounds) {
+    if (bounds.width === 0 || bounds.height === 0) {
+      playerManager.close();
+      return { ok: true };
+    }
     playerManager.targetBounds = bounds;
     playerManager.setBounds(bounds);
   }

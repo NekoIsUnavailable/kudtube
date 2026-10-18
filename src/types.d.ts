@@ -67,7 +67,7 @@ declare global {
     kudtubeAPI: {
       searchVideos: (query: string, limit?: number) => Promise<{ ok: boolean; title?: string | null; results: VideoItem[]; error?: string }>;
       getCategoryFeed: (category: string, limit?: number) => Promise<{ ok: boolean; results: VideoItem[]; error?: string }>;
-      startPlayer: (params: { url: string; quality?: string; startTime?: number; volume?: number; bounds?: { x: number; y: number; width: number; height: number }; isOffline?: boolean }) => Promise<{ ok: boolean; error?: string }>;
+      startPlayer: (params: { url: string; quality?: string; startTime?: number; volume?: number; bounds?: { x: number; y: number; width: number; height: number }; isOffline?: boolean; isAudio?: boolean }) => Promise<{ ok: boolean; error?: string }>;
       syncPlayerBounds: (bounds: { x: number; y: number; width: number; height: number }) => Promise<{ ok: boolean }>;
       stopPlayer: () => Promise<{ ok: boolean }>;
       playerPlay: () => Promise<{ ok: boolean }>;

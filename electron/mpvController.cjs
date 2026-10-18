@@ -100,8 +100,9 @@ class MpvController {
     this.expectingExit = false;
 
     const pipeName = `\\\\.\\pipe\\kudtube-mpv-${process.pid}-${Date.now()}`;
+    const isAudioOnly = Boolean(options.isAudio || options.quality === 'audio' || !hwnd);
+
     const args = [
-      `--wid=${hwnd}`,
       '--no-config',
       '--no-osc',
       '--no-osd-bar',
@@ -112,16 +113,24 @@ class MpvController {
       '--cursor-autohide=no',
       '--keep-open=yes',
       '--idle=yes',
-      '--force-window=yes',
-      '--hwdec=auto-safe',
-      '--vo=gpu',
-      '--background-color=#000000',
       '--hr-seek=yes',
       '--cache=yes',
       '--demuxer-max-bytes=150MiB',
       `--input-ipc-server=${pipeName}`,
       `--volume=${Math.round(options.volume ?? 100)}`,
     ];
+
+    if (isAudioOnly) {
+      args.push('--no-video');
+      args.push('--force-window=no');
+      args.push('--vo=null');
+    } else {
+      args.push(`--wid=${hwnd}`);
+      args.push('--force-window=yes');
+      args.push('--hwdec=auto-safe');
+      args.push('--vo=gpu');
+      args.push('--background-color=#000000');
+    }
 
     const isLocalFile = Boolean(options.isOffline || fs.existsSync(urlOrPath) || !urlOrPath.startsWith('http'));
     this.state.isOffline = isLocalFile;
