@@ -111,9 +111,9 @@ export const Header: React.FC<HeaderProps> = ({
     saveStoredHistory([]);
   };
 
-  const handleMinimize = () => window.kudtubeAPI?.minimize();
-  const handleMaximize = () => window.kudtubeAPI?.maximize();
-  const handleClose = () => window.kudtubeAPI?.closeWindow();
+  const handleMinimize = () => window.kudtubeAPI?.minimize?.();
+  const handleMaximize = () => window.kudtubeAPI?.maximize?.();
+  const handleClose = () => window.kudtubeAPI?.closeWindow?.();
 
   return (
     <header
@@ -324,30 +324,32 @@ export const Header: React.FC<HeaderProps> = ({
               {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
 
-            {/* Windows Caption Controls - Desktop only */}
-            <div className="hidden sm:flex items-center ml-2 border-l border-gray-200 dark:border-[#272727] pl-2">
-              <button
-                onClick={handleMinimize}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-[#272727] text-gray-600 dark:text-gray-300 transition"
-                title="Minimize"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleMaximize}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-[#272727] text-gray-600 dark:text-gray-300 transition"
-                title="Maximize"
-              >
-                <Square className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleClose}
-                className="p-2 hover:bg-[#e81123] hover:text-white text-gray-600 dark:text-gray-300 transition"
-                title="Close"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Caption Controls - Desktop Windows / Linux only (macOS uses native traffic lights) */}
+            {window.kudtubeAPI?.platform !== 'darwin' && Boolean(window.kudtubeAPI?.minimize) && (
+              <div className="hidden sm:flex items-center ml-2 border-l border-gray-200 dark:border-[#272727] pl-2">
+                <button
+                  onClick={handleMinimize}
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-[#272727] text-gray-600 dark:text-gray-300 transition"
+                  title="Minimize"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleMaximize}
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-[#272727] text-gray-600 dark:text-gray-300 transition"
+                  title="Maximize"
+                >
+                  <Square className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="p-2 hover:bg-[#e81123] hover:text-white text-gray-600 dark:text-gray-300 transition"
+                  title="Close"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

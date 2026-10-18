@@ -5,13 +5,14 @@ const { app } = require('electron');
 const { getYtDlpPath } = require('./youtubeApi.cjs');
 
 function getFfmpegPath() {
+  const exeName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
   const bundled = app.isPackaged
-    ? path.join(process.resourcesPath, 'mpv', 'ffmpeg.exe')
-    : path.join(__dirname, 'bin', 'mpv', 'ffmpeg.exe');
+    ? path.join(process.resourcesPath, 'mpv', exeName)
+    : path.join(__dirname, 'bin', 'mpv', exeName);
   if (fs.existsSync(bundled)) return bundled;
-  const nodeFfmpeg = path.join(__dirname, '../node_modules/ffmpeg-static/ffmpeg.exe');
+  const nodeFfmpeg = path.join(__dirname, '../node_modules/ffmpeg-static', exeName);
   if (fs.existsSync(nodeFfmpeg)) return nodeFfmpeg;
-  return null;
+  return 'ffmpeg';
 }
 
 class DownloadManager {
@@ -23,8 +24,11 @@ class DownloadManager {
   }
 
   getDownloadDir() {
-    const defaultDir = path.join(app.getPath('videos'), 'KudTube');
-    return defaultDir;
+    try {
+      return path.join(app.getPath('videos'), 'KudTube');
+    } catch {
+      return path.join(app.getPath('downloads'), 'KudTube');
+    }
   }
 
   ensureDir(dir) {

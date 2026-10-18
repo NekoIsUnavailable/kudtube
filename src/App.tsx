@@ -18,6 +18,7 @@ import {
   getHistory,
   appendHistory,
 } from './utils/storage';
+import { fetchCategoryFeedFallback, searchVideosFallback } from './utils/apiFallback';
 
 export type ViewType =
   | 'home'
@@ -83,6 +84,9 @@ export function KudTubeApp() {
       if (res.ok) {
         setVideos(res.results);
       }
+    } else {
+      const results = await fetchCategoryFeedFallback(category, 24);
+      setVideos(results);
     }
     setLoading(false);
   }, []);
@@ -122,6 +126,9 @@ export function KudTubeApp() {
       if (res.ok) {
         setVideos(res.results);
       }
+    } else {
+      const results = await searchVideosFallback(query, 30);
+      setVideos(results);
     }
     setLoading(false);
   };

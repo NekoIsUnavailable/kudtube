@@ -5,11 +5,12 @@ const https = require('https');
 const { app } = require('electron');
 
 function getYtDlpPath() {
+  const exeName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
   if (app && app.isPackaged) {
-    const pkg = path.join(process.resourcesPath, 'mpv', 'yt-dlp.exe');
+    const pkg = path.join(process.resourcesPath, 'mpv', exeName);
     if (fs.existsSync(pkg)) return pkg;
   }
-  const local = path.join(__dirname, 'bin', 'mpv', 'yt-dlp.exe');
+  const local = path.join(__dirname, 'bin', 'mpv', exeName);
   if (fs.existsSync(local)) return local;
   return 'yt-dlp';
 }

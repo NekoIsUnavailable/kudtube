@@ -19,16 +19,18 @@ const OBSERVED_PROPERTIES = [
 ];
 
 function getMpvExecutablePath() {
+  const exeName = process.platform === 'win32' ? 'mpv.exe' : 'mpv';
   const bundled = app.isPackaged
-    ? path.join(process.resourcesPath, 'mpv', 'mpv.exe')
-    : path.join(__dirname, 'bin', 'mpv', 'mpv.exe');
+    ? path.join(process.resourcesPath, 'mpv', exeName)
+    : path.join(__dirname, 'bin', 'mpv', exeName);
   return fs.existsSync(bundled) ? bundled : 'mpv';
 }
 
 function getYtDlpExecutablePath() {
+  const exeName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
   const bundled = app.isPackaged
-    ? path.join(process.resourcesPath, 'mpv', 'yt-dlp.exe')
-    : path.join(__dirname, 'bin', 'mpv', 'yt-dlp.exe');
+    ? path.join(process.resourcesPath, 'mpv', exeName)
+    : path.join(__dirname, 'bin', 'mpv', exeName);
   return fs.existsSync(bundled) ? bundled : null;
 }
 
@@ -99,7 +101,10 @@ class MpvController {
     this.state.quality = this.currentQuality;
     this.expectingExit = false;
 
-    const pipeName = `\\\\.\\pipe\\kudtube-mpv-${process.pid}-${Date.now()}`;
+    const pipeName = process.platform === 'win32'
+      ? `\\\\.\\pipe\\kudtube-mpv-${process.pid}-${Date.now()}`
+      : path.join(app.getPath('temp'), `kudtube-mpv-${process.pid}-${Date.now()}.sock`);
+    this.pipeName = pipeName;
     const isAudioOnly = Boolean(options.isAudio || options.quality === 'audio' || !hwnd);
 
     const args = [
@@ -136,9 +141,18 @@ class MpvController {
       args.push(`--wid=${hwnd}`);
       args.push('--force-window=yes');
       args.push('--hwdec=auto-safe');
-      args.push('--vo=gpu,direct3d');
-      args.push('--gpu-api=d3d11,opengl');
-      args.push('--gpu-context=d3d11,win');
+      if (process.platform === 'win32') {
+        args.push('--vo=gpu,direct3d');
+        args.push('--gpu-api=d3d11,opengl');
+        args.push('--gpu-context=d3d11,win');
+      } else if (process.platform === 'darwin') {
+        args.push('--vo=gpu');
+        args.push('--gpu-api=opengl');
+      } else {
+        args.push('--vo=gpu');
+        args.push('--gpu-api=opengl');
+        args.push('--gpu-context=x11,wayland');
+      }
       args.push('--scale=bilinear');
       args.push('--cscale=bilinear');
       args.push('--dscale=bilinear');
@@ -388,6 +402,9 @@ class MpvController {
         this.process.kill();
       } catch {}
       this.process = null;
+    }
+    if (process.platform !== 'win32' && this.pipeName && fs.existsSync(this.pipeName)) {
+      try { fs.unlinkSync(this.pipeName); } catch {}
     }
     for (const resolve of this.pending.values()) {
       resolve({ error: 'Player closed' });

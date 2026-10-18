@@ -9,7 +9,14 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "start": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "package": "npm run build && electron-builder -w -c.mac.identity=null"
+    "package": "npm run build && electron-builder -w -c.mac.identity=null",
+    "package:dir": "npm run build && electron-builder --dir",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "package:all": "npm run build && electron-builder -mwl",
+    "cap:sync": "npm run build && cap sync android",
+    "cap:build:android": "npm run build && cap sync android && cd android && gradlew assembleDebug"
   },
   "build": {
     "appId": "com.kudtube.app",
@@ -23,6 +30,22 @@
         "zip"
       ],
       "icon": "build/icon.png"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.entertainment"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "AudioVideo"
     },
     "nsis": {
       "oneClick": true,
@@ -56,6 +79,7 @@
     ]
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.3",
     "@tailwindcss/vite": "^4.3.3",
     "framer-motion": "^13.1.1",
     "lucide-react": "^1.34.0",
@@ -64,6 +88,8 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",

@@ -47,7 +47,8 @@ contextBridge.exposeInMainWorld('kudtubeAPI', {
     return () => ipcRenderer.removeListener('download-progress', handler);
   },
 
-  // Window Controls
+  // Window Controls & Platform
+  platform: process.platform,
   minimize: () => ipcRenderer.invoke('window-minimize'),
   maximize: () => ipcRenderer.invoke('window-maximize'),
   closeWindow: () => ipcRenderer.invoke('window-close'),

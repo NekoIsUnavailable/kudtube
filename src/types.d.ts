@@ -65,6 +65,7 @@ export interface Playlist {
 declare global {
   interface Window {
     kudtubeAPI: {
+      platform?: string;
       searchVideos: (query: string, limit?: number) => Promise<{ ok: boolean; title?: string | null; results: VideoItem[]; error?: string }>;
       getCategoryFeed: (category: string, limit?: number) => Promise<{ ok: boolean; results: VideoItem[]; error?: string }>;
       startPlayer: (params: { url: string; quality?: string; startTime?: number; volume?: number; bounds?: { x: number; y: number; width: number; height: number }; isOffline?: boolean; isAudio?: boolean }) => Promise<{ ok: boolean; error?: string }>;
@@ -89,10 +90,10 @@ declare global {
       deleteDownload: (videoId: string) => Promise<boolean>;
       getSavedDownloads: () => Promise<DownloadItem[]>;
       onDownloadProgress: (callback: (data: DownloadProgress) => void) => () => void;
-      minimize: () => Promise<void>;
-      maximize: () => Promise<void>;
-      closeWindow: () => Promise<void>;
-      isMaximized: () => Promise<boolean>;
+      minimize?: () => Promise<void>;
+      maximize?: () => Promise<void>;
+      closeWindow?: () => Promise<void>;
+      isMaximized?: () => Promise<boolean>;
     };
   }
 }

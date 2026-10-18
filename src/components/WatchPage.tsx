@@ -318,7 +318,28 @@ export const WatchPage: React.FC<WatchPageProps> = ({
             className={`relative aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-lg transition-all ${
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
-          />
+          >
+            {/* Fallback player for Android (Capacitor) and Web browsers where Electron native MPV is unavailable */}
+            {!window.kudtubeAPI && (
+              video.filePath ? (
+                <video
+                  src={video.filePath}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&playsinline=1&rel=0`}
+                  title={video.title}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              )
+            )}
+          </div>
 
           {/* Details Section (Indented slightly on mobile for padding) */}
           <div className="px-3 sm:px-0 flex flex-col gap-3 sm:gap-4">
