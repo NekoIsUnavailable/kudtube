@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-yt-red: #ff0000;
+  --color-yt-dark-bg: #0f0f0f;
+  --color-yt-dark-surface: #1f1f1f;
+  --color-yt-dark-hover: #272727;
+  --color-yt-dark-border: #333333;
+  --color-yt-light-bg: #ffffff;
+  --color-yt-light-surface: #f2f2f2;
+  --color-yt-light-hover: #e5e5e5;
+  --color-yt-light-border: #e0e0e0;
+}
+
+/* YouTube Style Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.6);
+}
