@@ -9,6 +9,7 @@ import { MusicView } from './components/MusicView';
 import { PlaylistsView } from './components/PlaylistsView';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
+import { Flame, Headphones, Download, ListPlus, History } from 'lucide-react';
 import {
   getWatchLater,
   getHistory,
@@ -160,7 +161,7 @@ export function KudTubeApp() {
           onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
         />
       ) : (
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col pb-20 md:pb-6">
           <CategoryPills
             activeCategory={activeCategory}
             onSelectCategory={loadCategoryFeed}
@@ -196,6 +197,71 @@ export function KudTubeApp() {
             />
           )}
         </main>
+      )}
+
+      {/* Mobile Bottom Navigation Bar (YouTube / YouTube Music style) */}
+      {currentView !== 'watch' && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md border-t border-gray-200 dark:border-[#272727] flex items-center justify-around py-1.5 px-2 select-none">
+          <button
+            onClick={() => loadCategoryFeed('trending')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'home' && activeCategory === 'trending'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Flame className="w-5 h-5" />
+            <span className="text-[10px]">Home</span>
+          </button>
+
+          <button
+            onClick={() => loadCategoryFeed('music_offline')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'music_offline'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Headphones className="w-5 h-5" />
+            <span className="text-[10px]">Music</span>
+          </button>
+
+          <button
+            onClick={() => loadCategoryFeed('offline')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'offline'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Download className="w-5 h-5" />
+            <span className="text-[10px]">Downloads</span>
+          </button>
+
+          <button
+            onClick={() => loadCategoryFeed('playlists')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'playlists'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <ListPlus className="w-5 h-5" />
+            <span className="text-[10px]">Playlists</span>
+          </button>
+
+          <button
+            onClick={() => loadCategoryFeed('history')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'history'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <History className="w-5 h-5" />
+            <span className="text-[10px]">History</span>
+          </button>
+        </nav>
       )}
 
       {/* Add To Playlist Modal */}

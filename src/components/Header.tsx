@@ -130,21 +130,21 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Center: Search Bar with History Dropdown */}
       <div
         ref={searchContainerRef}
-        className="relative flex items-center w-full max-w-xl mx-4"
+        className="relative flex items-center w-full max-w-xl mx-2 sm:mx-4 flex-1 min-w-0"
         style={{ WebkitAppRegion: 'no-drag' } as any}
       >
         <form
           onSubmit={handleSubmit}
           className="flex items-center w-full"
         >
-          <div className="flex items-center w-full rounded-l-full border border-gray-300 dark:border-[#303030] bg-white dark:bg-[#121212] px-4 py-1.5 focus-within:border-blue-500 dark:focus-within:border-blue-500 shadow-inner">
+          <div className="flex items-center w-full rounded-l-full border border-gray-300 dark:border-[#303030] bg-white dark:bg-[#121212] px-3 sm:px-4 py-1.5 focus-within:border-blue-500 dark:focus-within:border-blue-500 shadow-inner">
             <input
               type="text"
               value={searchInput}
               onFocus={() => setShowHistory(true)}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search YouTube or paste URL / Playlist..."
-              className="w-full bg-transparent text-sm text-black dark:text-white outline-none placeholder-gray-500"
+              placeholder="Search YouTube or URL..."
+              className="w-full bg-transparent text-xs sm:text-sm text-black dark:text-white outline-none placeholder-gray-500"
             />
             {searchInput && (
               <button
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <button
             type="submit"
-            className="px-5 py-2 rounded-r-full border border-l-0 border-gray-300 dark:border-[#303030] bg-[#f8f8f8] dark:bg-[#222222] hover:bg-[#f0f0f0] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition flex items-center justify-center"
+            className="px-3 sm:px-5 py-2 rounded-r-full border border-l-0 border-gray-300 dark:border-[#303030] bg-[#f8f8f8] dark:bg-[#222222] hover:bg-[#f0f0f0] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition flex items-center justify-center flex-shrink-0"
             title="Search"
           >
             <Search className="w-4 h-4" />
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Search History Dropdown */}
         {showHistory && searchHistory.length > 0 && (
-          <div className="absolute top-12 left-0 right-14 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-2xl py-2 z-50 text-xs font-medium">
+          <div className="absolute top-12 left-0 right-10 sm:right-14 bg-white dark:bg-[#1f1f1f] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-2xl py-2 z-50 text-xs font-medium">
             <div className="flex items-center justify-between px-4 py-1 pb-1.5 text-gray-400 border-b border-gray-100 dark:border-[#2a2a2a]">
               <span className="text-[11px] font-semibold uppercase tracking-wider">Recent Searches</span>
               <button
@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Right: Theme Toggle & Window Controls */}
-      <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as any}>
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0" style={{ WebkitAppRegion: 'no-drag' } as any}>
         <button
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
@@ -213,8 +213,8 @@ export const Header: React.FC<HeaderProps> = ({
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
-        {/* Windows Caption Controls */}
-        <div className="flex items-center ml-2 border-l border-gray-200 dark:border-[#272727] pl-2">
+        {/* Windows Caption Controls - Desktop only */}
+        <div className="hidden sm:flex items-center ml-2 border-l border-gray-200 dark:border-[#272727] pl-2">
           <button
             onClick={handleMinimize}
             className="p-2 hover:bg-gray-200 dark:hover:bg-[#272727] text-gray-600 dark:text-gray-300 transition"
