@@ -68,6 +68,11 @@ jobs:
             release_kudtube/*.dmg
             release_kudtube/*.AppImage
             release_kudtube/*.deb
+            ../release_kudtube/*.exe
+            ../release_kudtube/*.zip
+            ../release_kudtube/*.dmg
+            ../release_kudtube/*.AppImage
+            ../release_kudtube/*.deb
           if-no-files-found: ignore
 
   # -------------------------------------------------------------
@@ -91,7 +96,10 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
 
       - name: Install dependencies
         run: npm ci
@@ -106,7 +114,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4

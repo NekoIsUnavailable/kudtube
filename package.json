@@ -22,7 +22,7 @@
     "appId": "com.kudtube.app",
     "productName": "KudTube",
     "directories": {
-      "output": "../release_kudtube"
+      "output": "release_kudtube"
     },
     "win": {
       "target": [
