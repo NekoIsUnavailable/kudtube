@@ -146,7 +146,7 @@ let activeSessionId = 0;
 // Playback
 ipcMain.handle('player-start', async (_event, params) => {
   const sessionId = ++activeSessionId;
-  const { url, quality, startTime, volume, bounds, isOffline, isAudio } = params || {};
+  const { url, quality, startTime, volume, bounds, isOffline, isAudio, isLive } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
 
   const isAudioPlayback = Boolean(
@@ -161,7 +161,7 @@ ipcMain.handle('player-start', async (_event, params) => {
     if (playerManager?.isOpen()) {
       playerManager.close();
     }
-    await mpv.start(null, url, { quality: 'audio', startTime, volume, isOffline, isAudio: true });
+    await mpv.start(null, url, { quality: 'audio', startTime, volume, isOffline, isAudio: true, isLive });
     return { ok: true };
   }
 
@@ -177,7 +177,7 @@ ipcMain.handle('player-start', async (_event, params) => {
     playerManager.show();
   }
 
-  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline, isAudio: false });
+  await mpv.start(hwnd, url, { quality, startTime, volume, isOffline, isAudio: false, isLive });
   return { ok: true };
 });
 

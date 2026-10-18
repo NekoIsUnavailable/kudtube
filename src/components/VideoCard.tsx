@@ -86,12 +86,17 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             </div>
           )}
 
-          {/* Duration Badge */}
-          {video.duration > 0 && (
+          {/* Duration or LIVE Badge */}
+          {video.isLive ? (
+            <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-red-600 text-white font-bold text-[10px] tracking-wider uppercase flex items-center gap-1 shadow">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              LIVE
+            </span>
+          ) : video.duration > 0 ? (
             <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/80 text-white font-medium text-[11px] tracking-wide">
               {formatDuration(video.duration)}
             </span>
-          )}
+          ) : null}
 
           {/* Offline Badge */}
           {video.isOffline && (
@@ -129,18 +134,19 @@ export const VideoCard: React.FC<VideoCardProps> = ({
               {inWatchLater ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
             </button>
 
-            {/* Download Button */}
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDesktopDownloadMenu((prev) => !prev);
-                }}
-                title="Download for offline playback"
-                className="p-1.5 rounded-md bg-black/70 hover:bg-black text-white backdrop-blur-md shadow transition"
-              >
-                <Download className="w-3.5 h-3.5" />
-              </button>
+            {/* Download Button (Only for recorded videos) */}
+            {!video.isLive && (
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDesktopDownloadMenu((prev) => !prev);
+                  }}
+                  title="Download for offline playback"
+                  className="p-1.5 rounded-md bg-black/70 hover:bg-black text-white backdrop-blur-md shadow transition"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
 
               {/* Desktop Download Popover */}
               {showDesktopDownloadMenu && (
@@ -172,6 +178,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                 </div>
               )}
             </div>
+            )}
 
             {/* Add to Playlist Button */}
             {onAddToPlaylist && (
@@ -287,17 +294,19 @@ export const VideoCard: React.FC<VideoCardProps> = ({
                   </button>
                 )}
 
-                {/* Download video */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMobileDownloadMode(true);
-                  }}
-                  className="flex items-center gap-3.5 py-3 px-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-sm font-medium transition text-left"
-                >
-                  <Download className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                  <span>Download video</span>
-                </button>
+                {/* Download video (Only for non-live videos) */}
+                {!video.isLive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMobileDownloadMode(true);
+                    }}
+                    className="flex items-center gap-3.5 py-3 px-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-sm font-medium transition text-left"
+                  >
+                    <Download className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                    <span>Download video</span>
+                  </button>
+                )}
 
                 {/* Share */}
                 <button

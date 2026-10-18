@@ -23,6 +23,7 @@ export async function fetchCategoryFeedFallback(category: string, limit = 24): P
           thumbnail: v.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.videoId || v.id}/hqdefault.jpg`,
           viewCount: typeof v.viewCount === 'number' ? v.viewCount : null,
           description: v.description || '',
+          isLive: Boolean(v.liveNow),
         }));
       }
     } catch {
@@ -50,6 +51,7 @@ export async function searchVideosFallback(query: string, limit = 30): Promise<V
           thumbnail: v.videoThumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.videoId || v.id}/hqdefault.jpg`,
           viewCount: typeof v.viewCount === 'number' ? v.viewCount : null,
           description: v.description || '',
+          isLive: Boolean(v.liveNow),
         }));
       }
     } catch {

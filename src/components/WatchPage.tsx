@@ -132,6 +132,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
         quality: preferredQuality,
         volume: 100,
         isOffline: Boolean(video.isOffline || video.filePath),
+        isLive: Boolean(video.isLive),
         bounds: {
           x: targetX,
           y: targetY,
@@ -274,11 +275,16 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               ) : null}
-              {item.duration > 0 && (
+              {item.isLive ? (
+                <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-red-600 text-white font-bold text-[9px] uppercase tracking-wide flex items-center gap-0.5 shadow">
+                  <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                  LIVE
+                </span>
+              ) : item.duration > 0 ? (
                 <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/80 text-white font-medium text-[10px]">
                   {formatDuration(item.duration)}
                 </span>
-              )}
+              ) : null}
             </div>
 
             <div className="flex flex-col min-w-0 justify-center">
@@ -360,8 +366,17 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                     <span className="font-bold text-sm text-black dark:text-white leading-tight truncate">
                       {video.channel}
                     </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {video.viewCount ? formatViews(video.viewCount) : 'YouTube Video'}
+                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                      {video.isLive ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-red-600 dark:text-red-500">
+                          <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                          LIVE NOW
+                        </span>
+                      ) : video.viewCount ? (
+                        formatViews(video.viewCount)
+                      ) : (
+                        'YouTube Video'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -413,7 +428,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                     <Check className="w-3.5 h-3.5" />
                     <span>Downloaded</span>
                   </div>
-                ) : (
+                ) : video.isLive ? null : (
                   <div className="relative">
                     <button
                       onClick={() => setShowDownloadMenu((prev) => !prev)}

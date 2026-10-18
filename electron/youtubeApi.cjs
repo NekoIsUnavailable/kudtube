@@ -27,6 +27,7 @@ function normalizeEntry(entry) {
 
   const videoId = entry.id || null;
   const videoUrl = entry.url || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : null);
+  const isLive = Boolean(entry.is_live || entry.live_status === 'is_live' || (entry.duration === 0 && entry.live_status));
 
   return {
     id: videoId,
@@ -39,6 +40,7 @@ function normalizeEntry(entry) {
     viewCount: typeof entry.view_count === 'number' ? entry.view_count : null,
     uploadDate: entry.upload_date || null,
     description: entry.description || '',
+    isLive,
   };
 }
 
@@ -137,6 +139,14 @@ function fetchInnerTubeSearch(query, limit = 24) {
                 const desc =
                   v.detailedMetadataSnippets?.[0]?.snippetText?.runs?.map((r) => r.text).join('') || '';
 
+                const badgesStr = JSON.stringify(v.badges || []);
+                const isLive = Boolean(
+                  badgesStr.includes('LIVE') ||
+                  v.thumbnailOverlays?.some((o) => o.thumbnailOverlayTimeStatusRenderer?.style === 'LIVE') ||
+                  (v.viewCountText?.runs?.some((r) => r.text && r.text.toLowerCase().includes('watching'))) ||
+                  (!v.lengthText && v.viewCountText && !uploadDate)
+                );
+
                 results.push({
                   id: v.videoId,
                   url: `https://www.youtube.com/watch?v=${v.videoId}`,
@@ -149,6 +159,7 @@ function fetchInnerTubeSearch(query, limit = 24) {
                   viewCount,
                   uploadDate,
                   description: desc,
+                  isLive,
                 });
 
                 if (results.length >= limit) break;
@@ -296,6 +307,7 @@ function getCategoryFeed(category = 'trending', limit = 24) {
     trailers: 'new movie trailers',
     podcasts: 'popular podcasts full episodes',
     news: 'world news today',
+    live: 'live stream now',
   };
   const q = queries[category.toLowerCase()] || queries.trending;
   return searchVideos(q, limit);
