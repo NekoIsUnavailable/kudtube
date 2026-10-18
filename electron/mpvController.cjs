@@ -115,7 +115,12 @@ class MpvController {
       '--idle=yes',
       '--hr-seek=yes',
       '--cache=yes',
-      '--demuxer-max-bytes=150MiB',
+      '--demuxer-max-bytes=32MiB',
+      '--demuxer-readahead-secs=20',
+      '--vd-lavc-threads=0',
+      '--vd-lavc-fast=yes',
+      '--vd-lavc-skiploopfilter=nonkey',
+      '--framedrop=vo',
       `--input-ipc-server=${pipeName}`,
       `--volume=${Math.round(options.volume ?? 100)}`,
     ];
@@ -128,7 +133,12 @@ class MpvController {
       args.push(`--wid=${hwnd}`);
       args.push('--force-window=yes');
       args.push('--hwdec=auto-safe');
-      args.push('--vo=gpu');
+      args.push('--vo=gpu,direct3d');
+      args.push('--gpu-api=d3d11,opengl');
+      args.push('--gpu-context=d3d11,win');
+      args.push('--scale=bilinear');
+      args.push('--cscale=bilinear');
+      args.push('--dscale=bilinear');
       args.push('--background-color=#000000');
     }
 
@@ -142,15 +152,15 @@ class MpvController {
         args.push(`--script-opts=ytdl_hook-ytdl_path=${normalizedYtDlp}`);
       }
 
-      // Set YouTube quality format
+      // Set YouTube quality format - prioritize H.264 (avc1) for smooth decoding on low-spec CPUs (Atom N455 / GMA 3150)
       const qualityFormats = {
-        '1080p': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-        '720p': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-        '480p': 'bestvideo[height<=480]+bestaudio/best[height<=480]',
-        '360p': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
-        'auto': 'bestvideo+bestaudio/best',
+        '1080p': 'bestvideo[height<=1080][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+        '720p': 'bestvideo[height<=720][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=720]+bestaudio/best[height<=720]',
+        '480p': 'bestvideo[height<=480][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=480]+bestaudio/best[height<=480]',
+        '360p': 'bestvideo[height<=360][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=360]+bestaudio/best[height<=360]',
+        'auto': 'bestvideo[height<=720][vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[height<=720]+bestaudio/best',
       };
-      const format = qualityFormats[this.currentQuality] || qualityFormats['1080p'];
+      const format = qualityFormats[this.currentQuality] || qualityFormats['720p'];
       args.push(`--ytdl-format=${format}`);
     }
 

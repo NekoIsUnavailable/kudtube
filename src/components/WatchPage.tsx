@@ -63,29 +63,35 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   const onSelectRef = useRef(onSelectVideo);
   onSelectRef.current = onSelectVideo;
 
+  const lastBoundsRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+
   const updatePlayerBounds = useCallback(() => {
     if (!containerRef.current || isFullscreenRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const HEADER_HEIGHT = 56;
 
-    if (rect.bottom <= HEADER_HEIGHT) {
-      window.kudtubeAPI?.syncPlayerBounds({
-        x: Math.round(rect.left),
-        y: HEADER_HEIGHT,
-        width: Math.round(rect.width),
-        height: 0,
-      });
+    const targetX = Math.round(rect.left);
+    const targetY = Math.max(HEADER_HEIGHT, Math.round(rect.top));
+    const targetWidth = Math.max(Math.round(rect.width), 10);
+    const targetHeight = Math.round(targetWidth * (9 / 16));
+
+    const prev = lastBoundsRef.current;
+    if (
+      prev &&
+      prev.x === targetX &&
+      prev.y === targetY &&
+      prev.width === targetWidth &&
+      prev.height === targetHeight
+    ) {
       return;
     }
-
-    const clampedTop = Math.max(HEADER_HEIGHT, rect.top);
-    const clampedHeight = Math.max(0, rect.bottom - clampedTop);
+    lastBoundsRef.current = { x: targetX, y: targetY, width: targetWidth, height: targetHeight };
 
     window.kudtubeAPI?.syncPlayerBounds({
-      x: Math.round(rect.left),
-      y: Math.round(clampedTop),
-      width: Math.round(rect.width),
-      height: Math.round(clampedHeight),
+      x: targetX,
+      y: targetY,
+      width: targetWidth,
+      height: targetHeight,
     });
   }, []);
 
@@ -97,22 +103,27 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     let unsubFs: (() => void) | null = null;
 
     const start = async () => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const HEADER_HEIGHT = 56;
-      const clampedTop = Math.max(HEADER_HEIGHT, rect.top);
-      const clampedHeight = Math.max(0, rect.bottom - clampedTop);
+      const targetX = Math.round(rect.left);
+      const targetY = Math.max(HEADER_HEIGHT, Math.round(rect.top));
+      const targetWidth = Math.max(Math.round(rect.width), 10);
+      const targetHeight = Math.round(targetWidth * (9 / 16));
+
+      const preferredQuality = localStorage.getItem('kudtube_preferred_quality') || '720p';
 
       await window.kudtubeAPI?.startPlayer({
         url: video.url || `https://www.youtube.com/watch?v=${video.id}`,
-        quality: '1080p',
+        quality: preferredQuality,
         volume: 100,
         isOffline: Boolean(video.isOffline || video.filePath),
         bounds: {
-          x: Math.round(rect.left),
-          y: Math.round(clampedTop),
-          width: Math.round(rect.width),
-          height: Math.round(clampedHeight),
+          x: targetX,
+          y: targetY,
+          width: targetWidth,
+          height: targetHeight,
         },
       });
 
@@ -181,6 +192,105 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     }
   };
 
+  const renderUpNext = () => (
+    <>
+      {/* Active Playlist Box */}
+      {playlist && (
+        <div className="rounded-xl border border-gray-200 dark:border-[#272727] bg-[#f8f8f8] dark:bg-[#1a1a1a] p-3 mb-2 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h3 className="text-sm font-bold text-black dark:text-white truncate">
+                {playlist.title}
+              </h3>
+              <span className="text-[11px] text-gray-500">
+                {playlist.videos.length} videos
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
+            {playlist.videos.map((item, idx) => {
+              const isCurrent = item.id === video.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onSelectVideo(item)}
+                  className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition ${
+                    isCurrent
+                      ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50'
+                      : 'hover:bg-gray-200 dark:hover:bg-[#252525]'
+                  }`}
+                >
+                  <span className="text-xs font-mono text-gray-400 w-4 text-center">
+                    {idx + 1}
+                  </span>
+                  <img
+                    src={item.thumbnail || ''}
+                    alt=""
+                    className="w-16 h-10 object-cover rounded"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span
+                      className={`text-xs font-semibold truncate ${
+                        isCurrent ? 'text-red-600 dark:text-red-400' : 'text-black dark:text-white'
+                      }`}
+                    >
+                      {item.title}
+                    </span>
+                    <span className="text-[10px] text-gray-500 truncate">
+                      {item.channel}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Up Next List */}
+      <h2 className="text-sm font-bold text-black dark:text-white px-1">Up Next</h2>
+      <div className="flex flex-col gap-3">
+        {upNextVideos.map((item) => (
+          <div
+            key={item.id}
+            onClick={() => onSelectVideo(item)}
+            className="group flex gap-2.5 cursor-pointer select-none"
+          >
+            <div className="relative aspect-video w-36 sm:w-40 rounded-lg overflow-hidden bg-gray-200 dark:bg-[#202020] flex-shrink-0">
+              {item.thumbnail ? (
+                <img
+                  src={item.thumbnail}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                />
+              ) : null}
+              {item.duration > 0 && (
+                <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/80 text-white font-medium text-[10px]">
+                  {formatDuration(item.duration)}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col min-w-0 justify-center">
+              <h4
+                className="text-xs font-semibold line-clamp-2 text-black dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors leading-snug"
+                title={item.title}
+              >
+                {item.title}
+              </h4>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 truncate">
+                {item.channel}
+              </p>
+              <span className="text-[10px] text-gray-400">
+                {formatViews(item.viewCount)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
   return (
     <div
       className="w-full min-h-screen bg-white dark:bg-[#0f0f0f] text-black dark:text-white pb-24 transition-colors"
@@ -192,10 +302,10 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       >
         {/* Left Column: Player & Video Info */}
         <div className="flex-1 min-w-0 flex flex-col gap-3 sm:gap-4">
-          {/* Video Player Box Anchor (Edge-to-edge on mobile, rounded on desktop) */}
+          {/* Video Player Box Anchor (Edge-to-edge on mobile, rounded on desktop, sticky below header) */}
           <div
             ref={containerRef}
-            className={`relative aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
+            className={`sticky top-14 z-20 aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
           />
@@ -283,7 +393,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                     </button>
 
                     {showDownloadMenu && (
-                      <div className="absolute left-0 sm:right-0 sm:left-auto top-9 w-44 bg-white dark:bg-[#222222] border border-gray-200 dark:border-[#333333] rounded-xl shadow-2xl py-1.5 z-50 text-xs font-medium">
+                      <div className="absolute left-0 sm:right-0 sm:left-auto top-9 w-48 bg-white dark:bg-[#222222] border border-gray-200 dark:border-[#333333] rounded-xl shadow-2xl py-1.5 z-50 text-xs font-medium">
                         <button
                           onClick={() => {
                             setShowDownloadMenu(false);
@@ -301,6 +411,24 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
                         >
                           <span>720p HD</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownload(video, '480p');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                        >
+                          <span>480p SD</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownload(video, '360p');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                        >
+                          <span>360p (Low-Spec / Netbook)</span>
                         </button>
                         <button
                           onClick={() => {
@@ -360,105 +488,17 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                 {descExpanded ? 'Show less' : 'Show more'}
               </button>
             </div>
+
+            {/* Mobile Up Next List (Inside left column so sticky player sticks across full page scroll) */}
+            <div className="lg:hidden flex flex-col gap-3 mt-3">
+              {renderUpNext()}
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Up Next & Active Playlist */}
-        <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-3 px-3 sm:px-0">
-          {/* Active Playlist Box */}
-          {playlist && (
-            <div className="rounded-xl border border-gray-200 dark:border-[#272727] bg-[#f8f8f8] dark:bg-[#1a1a1a] p-3 mb-2 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="text-sm font-bold text-black dark:text-white truncate">
-                    {playlist.title}
-                  </h3>
-                  <span className="text-[11px] text-gray-500">
-                    {playlist.videos.length} videos
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
-                {playlist.videos.map((item, idx) => {
-                  const isCurrent = item.id === video.id;
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => onSelectVideo(item)}
-                      className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition ${
-                        isCurrent
-                          ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50'
-                          : 'hover:bg-gray-200 dark:hover:bg-[#252525]'
-                      }`}
-                    >
-                      <span className="text-xs font-mono text-gray-400 w-4 text-center">
-                        {idx + 1}
-                      </span>
-                      <img
-                        src={item.thumbnail || ''}
-                        alt=""
-                        className="w-16 h-10 object-cover rounded"
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span
-                          className={`text-xs font-semibold truncate ${
-                            isCurrent ? 'text-red-600 dark:text-red-400' : 'text-black dark:text-white'
-                          }`}
-                        >
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-gray-500 truncate">
-                          {item.channel}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Up Next List */}
-          <h2 className="text-sm font-bold text-black dark:text-white px-1">Up Next</h2>
-          <div className="flex flex-col gap-3">
-            {upNextVideos.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onSelectVideo(item)}
-                className="group flex gap-2.5 cursor-pointer select-none"
-              >
-                <div className="relative aspect-video w-36 sm:w-40 rounded-lg overflow-hidden bg-gray-200 dark:bg-[#202020] flex-shrink-0">
-                  {item.thumbnail ? (
-                    <img
-                      src={item.thumbnail}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    />
-                  ) : null}
-                  {item.duration > 0 && (
-                    <span className="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/80 text-white font-medium text-[10px]">
-                      {formatDuration(item.duration)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-col min-w-0 justify-center">
-                  <h4
-                    className="text-xs font-semibold line-clamp-2 text-black dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors leading-snug"
-                    title={item.title}
-                  >
-                    {item.title}
-                  </h4>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 truncate">
-                    {item.channel}
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {formatViews(item.viewCount)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Right Column: Up Next & Active Playlist (Desktop only) */}
+        <div className="hidden lg:flex w-full lg:w-80 xl:w-[400px] flex-shrink-0 flex-col gap-3 px-3 sm:px-0">
+          {renderUpNext()}
         </div>
       </div>
     </div>

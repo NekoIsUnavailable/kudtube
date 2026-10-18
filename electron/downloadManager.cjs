@@ -4,6 +4,16 @@ const fs = require('fs');
 const { app } = require('electron');
 const { getYtDlpPath } = require('./youtubeApi.cjs');
 
+function getFfmpegPath() {
+  const bundled = app.isPackaged
+    ? path.join(process.resourcesPath, 'mpv', 'ffmpeg.exe')
+    : path.join(__dirname, 'bin', 'mpv', 'ffmpeg.exe');
+  if (fs.existsSync(bundled)) return bundled;
+  const nodeFfmpeg = path.join(__dirname, '../node_modules/ffmpeg-static/ffmpeg.exe');
+  if (fs.existsSync(nodeFfmpeg)) return nodeFfmpeg;
+  return null;
+}
+
 class DownloadManager {
   constructor(getWebContents) {
     this.getWebContents = getWebContents;
@@ -63,18 +73,8 @@ class DownloadManager {
       const ytDlp = getYtDlpPath();
       const outputTemplate = path.join(outDir, '%(title)s [%(id)s].%(ext)s');
 
-      let formatArg = 'bv*[height<=1080]+ba/b[height<=1080]';
+      let formatArg = 'bv*[height<=1080][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=1080]+ba/b[height<=1080]';
       const extraArgs = [];
-
-function getFfmpegPath() {
-  const bundled = app.isPackaged
-    ? path.join(process.resourcesPath, 'mpv', 'ffmpeg.exe')
-    : path.join(__dirname, 'bin', 'mpv', 'ffmpeg.exe');
-  if (fs.existsSync(bundled)) return bundled;
-  const nodeFfmpeg = path.join(__dirname, '../node_modules/ffmpeg-static/ffmpeg.exe');
-  if (fs.existsSync(nodeFfmpeg)) return nodeFfmpeg;
-  return null;
-}
 
       const ffmpegPath = getFfmpegPath();
       if (ffmpegPath) {
@@ -82,7 +82,11 @@ function getFfmpegPath() {
       }
 
       if (quality === '720p') {
-        formatArg = 'bv*[height<=720]+ba/b[height<=720]';
+        formatArg = 'bv*[height<=720][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=720]+ba/b[height<=720]';
+      } else if (quality === '480p') {
+        formatArg = 'bv*[height<=480][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=480]+ba/b[height<=480]';
+      } else if (quality === '360p') {
+        formatArg = 'bv*[height<=360][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<=360]+ba/b[height<=360]';
       } else if (quality === 'audio' || quality === 'mp3') {
         extraArgs.push('-x', '--audio-format', 'mp3', '--audio-quality', '0');
         formatArg = 'ba/b';

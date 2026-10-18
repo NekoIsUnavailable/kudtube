@@ -14,12 +14,18 @@ let playerManager = null;
 const mpv = new MpvController();
 let downloadManager = null;
 
+// Low-spec netbook performance switches (Acer Aspire One D255E baseline: Intel Atom N455 / GMA 3150 / 1GB RAM)
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('enable-low-res-tiling');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 900,
-    minHeight: 600,
+    width: 1024,
+    height: 600,
+    minWidth: 400,
+    minHeight: 480,
     frame: false,
     titleBarStyle: 'hidden',
     titleBarOverlay: false,

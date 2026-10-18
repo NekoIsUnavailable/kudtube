@@ -126,9 +126,12 @@ class PlayerWindowManager {
     const targetX = Math.round(contentBounds.x + rect.x);
     const targetY = Math.round(contentBounds.y + clampedY);
     const targetWidth = Math.max(Math.round(rect.width), 10);
-    const targetHeight = Math.max(Math.round(rect.height), 0);
+    const targetHeight = Math.max(
+      Math.round(rect.height || (targetWidth * 9) / 16),
+      Math.round((targetWidth * 9) / 16)
+    );
 
-    if (targetHeight <= 0) {
+    if (targetHeight <= 0 || targetWidth <= 0) {
       if (this.playerWindow.isVisible()) {
         this.playerWindow.hide();
       }

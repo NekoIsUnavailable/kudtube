@@ -81,6 +81,9 @@ export const PlayerOverlay: React.FC = () => {
 
   const handleQuality = (q: string) => {
     setShowQualityMenu(false);
+    try {
+      localStorage.setItem('kudtube_preferred_quality', q);
+    } catch {}
     window.kudtubeAPI?.playerSetQuality(q);
   };
 
