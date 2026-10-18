@@ -67,6 +67,16 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Hide native video player when search history or mobile search overlay is active
+  // so the native player window never renders on top of the search dropdown!
+  useEffect(() => {
+    if (showHistory || isMobileSearchOpen) {
+      window.kudtubeAPI?.setPlayerVisible?.(false);
+    } else {
+      window.kudtubeAPI?.setPlayerVisible?.(true);
+    }
+  }, [showHistory, isMobileSearchOpen]);
+
   const triggerSearch = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;

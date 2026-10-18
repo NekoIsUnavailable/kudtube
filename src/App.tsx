@@ -128,13 +128,22 @@ export function KudTubeApp() {
 
   // Play Video (Stops music playback if currently active)
   const handlePlayVideo = (video: VideoItem, playlist?: Playlist | null) => {
-    closeMusic();
+    closeMusic(false);
     setPreviousView(currentView === 'watch' ? previousView : currentView);
     appendHistory(video);
     setCurrentVideo(video);
     setCurrentPlaylist(playlist || null);
     setCurrentView('watch');
   };
+
+  // Hide native video player while modal is open so it does not punch through
+  useEffect(() => {
+    if (playlistModalVideo) {
+      window.kudtubeAPI?.setPlayerVisible?.(false);
+    } else {
+      window.kudtubeAPI?.setPlayerVisible?.(true);
+    }
+  }, [playlistModalVideo]);
 
   // Back to previous browse page
   const handleBackToBrowse = () => {

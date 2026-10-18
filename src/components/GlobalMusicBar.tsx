@@ -126,7 +126,7 @@ export const GlobalMusicBar: React.FC<GlobalMusicBarProps> = ({ onOpenMusicView 
           </button>
 
           <button
-            onClick={closeMusic}
+            onClick={() => closeMusic()}
             className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition"
             title="Close music player"
           >

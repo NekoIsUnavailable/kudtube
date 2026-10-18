@@ -36,7 +36,7 @@ interface MusicContextType {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   toggleLike: (id: string, e?: React.MouseEvent) => void;
-  closeMusic: () => void;
+  closeMusic: (stopMpv?: boolean) => void;
   setIsPlayerExpanded: (expanded: boolean) => void;
 }
 
@@ -172,8 +172,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const closeMusic = () => {
-    window.kudtubeAPI?.stopPlayer();
+  const closeMusic = (stopMpv: boolean = true) => {
+    if (stopMpv) {
+      window.kudtubeAPI?.stopPlayer();
+    }
     setCurrentTrack(null);
     setIsPlayerExpanded(false);
   };

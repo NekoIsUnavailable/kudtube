@@ -132,8 +132,11 @@ ipcMain.handle('get-category-feed', async (_event, category, limit) => {
   return getCategoryFeed(category, limit);
 });
 
+let activeSessionId = 0;
+
 // Playback
 ipcMain.handle('player-start', async (_event, params) => {
+  const sessionId = ++activeSessionId;
   const { url, quality, startTime, volume, bounds, isOffline, isAudio } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
 
@@ -153,6 +156,8 @@ ipcMain.handle('player-start', async (_event, params) => {
     return { ok: true };
   }
 
+  if (sessionId !== activeSessionId) return { ok: false };
+
   if (bounds && playerManager) {
     playerManager.targetBounds = bounds;
   }
@@ -169,17 +174,30 @@ ipcMain.handle('player-start', async (_event, params) => {
 
 ipcMain.handle('player-sync-bounds', async (_event, bounds) => {
   if (playerManager?.isOpen() && bounds) {
-    if (bounds.width === 0 || bounds.height === 0) {
-      playerManager.close();
+    if (bounds.width === 0 || bounds.height === 0 || bounds.hidden) {
+      playerManager.hide();
       return { ok: true };
     }
     playerManager.targetBounds = bounds;
     playerManager.setBounds(bounds);
+    playerManager.show();
+  }
+  return { ok: true };
+});
+
+ipcMain.handle('player-set-visible', async (_event, visible) => {
+  if (playerManager?.isOpen()) {
+    if (visible) {
+      playerManager.show();
+    } else {
+      playerManager.hide();
+    }
   }
   return { ok: true };
 });
 
 ipcMain.handle('player-stop', async () => {
+  activeSessionId++;
   await mpv.close();
   if (playerManager) playerManager.close();
   return { ok: true };

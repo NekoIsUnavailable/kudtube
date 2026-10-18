@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('kudtubeAPI', {
   // Playback
   startPlayer: (params) => ipcRenderer.invoke('player-start', params),
   syncPlayerBounds: (bounds) => ipcRenderer.invoke('player-sync-bounds', bounds),
+  setPlayerVisible: (visible) => ipcRenderer.invoke('player-set-visible', visible),
   stopPlayer: () => ipcRenderer.invoke('player-stop'),
   playerPlay: () => ipcRenderer.invoke('player-play'),
   playerPause: () => ipcRenderer.invoke('player-pause'),

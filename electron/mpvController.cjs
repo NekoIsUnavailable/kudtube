@@ -138,7 +138,8 @@ class MpvController {
     if (!isLocalFile) {
       const ytDlpPath = getYtDlpExecutablePath();
       if (ytDlpPath) {
-        args.push(`--script-opts=ytdl_hook-ytdl_path=${ytDlpPath}`);
+        const normalizedYtDlp = ytDlpPath.replace(/\\/g, '/');
+        args.push(`--script-opts=ytdl_hook-ytdl_path=${normalizedYtDlp}`);
       }
 
       // Set YouTube quality format
@@ -362,9 +363,11 @@ class MpvController {
     this.expectingExit = true;
     if (this.socket) {
       try {
-        await this.sendCommand(['quit']);
+        this.socket.write(JSON.stringify({ command: ['quit'] }) + '\n');
       } catch {}
-      this.socket.destroy();
+      try {
+        this.socket.destroy();
+      } catch {}
       this.socket = null;
     }
     if (this.process) {
@@ -373,6 +376,11 @@ class MpvController {
       } catch {}
       this.process = null;
     }
+    for (const resolve of this.pending.values()) {
+      resolve({ error: 'Player closed' });
+    }
+    this.pending.clear();
+    this.buffer = '';
     this.currentHwnd = null;
     this.currentUrl = null;
     this.state = initialState();
