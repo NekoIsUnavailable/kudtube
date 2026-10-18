@@ -64,11 +64,26 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   const updatePlayerBounds = useCallback(() => {
     if (!containerRef.current || isFullscreenRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    const HEADER_HEIGHT = 56;
+
+    if (rect.bottom <= HEADER_HEIGHT) {
+      window.kudtubeAPI?.syncPlayerBounds({
+        x: Math.round(rect.left),
+        y: HEADER_HEIGHT,
+        width: Math.round(rect.width),
+        height: 0,
+      });
+      return;
+    }
+
+    const clampedTop = Math.max(HEADER_HEIGHT, rect.top);
+    const clampedHeight = Math.max(0, rect.bottom - clampedTop);
+
     window.kudtubeAPI?.syncPlayerBounds({
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
+      x: Math.round(rect.left),
+      y: Math.round(clampedTop),
+      width: Math.round(rect.width),
+      height: Math.round(clampedHeight),
     });
   }, []);
 
@@ -82,6 +97,9 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     const start = async () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
+      const HEADER_HEIGHT = 56;
+      const clampedTop = Math.max(HEADER_HEIGHT, rect.top);
+      const clampedHeight = Math.max(0, rect.bottom - clampedTop);
 
       await window.kudtubeAPI?.startPlayer({
         url: video.url || `https://www.youtube.com/watch?v=${video.id}`,
@@ -89,10 +107,10 @@ export const WatchPage: React.FC<WatchPageProps> = ({
         volume: 100,
         isOffline: Boolean(video.isOffline || video.filePath),
         bounds: {
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          height: rect.height,
+          x: Math.round(rect.left),
+          y: Math.round(clampedTop),
+          width: Math.round(rect.width),
+          height: Math.round(clampedHeight),
         },
       });
 

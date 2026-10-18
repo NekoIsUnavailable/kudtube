@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
+import { MusicProvider, useMusic } from './context/MusicContext';
 import { Header } from './components/Header';
 import { CategoryPills, type CategoryKey } from './components/CategoryPills';
 import { VideoGrid } from './components/VideoGrid';
@@ -8,6 +9,8 @@ import { DownloadsView } from './components/DownloadsView';
 import { MusicView } from './components/MusicView';
 import { PlaylistsView } from './components/PlaylistsView';
 import { AddToPlaylistModal } from './components/AddToPlaylistModal';
+import { GlobalMusicBar } from './components/GlobalMusicBar';
+import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
 import { Flame, Headphones, Download, ListPlus, History } from 'lucide-react';
 import {
@@ -36,6 +39,9 @@ export function KudTubeApp() {
   // Playback state
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
+
+  // Global music player state
+  const { currentTrack, isPlayerExpanded, closeMusic } = useMusic();
 
   // Playlist modal state
   const [playlistModalVideo, setPlaylistModalVideo] = useState<VideoItem | null>(null);
@@ -120,8 +126,9 @@ export function KudTubeApp() {
     setLoading(false);
   };
 
-  // Play Video
+  // Play Video (Stops music playback if currently active)
   const handlePlayVideo = (video: VideoItem, playlist?: Playlist | null) => {
+    closeMusic();
     setPreviousView(currentView === 'watch' ? previousView : currentView);
     appendHistory(video);
     setCurrentVideo(video);
@@ -161,7 +168,11 @@ export function KudTubeApp() {
           onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
         />
       ) : (
-        <main className="flex-1 flex flex-col pb-20 md:pb-6">
+        <main
+          className={`flex-1 flex flex-col ${
+            currentTrack && !isPlayerExpanded ? 'pb-36 md:pb-24' : 'pb-20 md:pb-6'
+          }`}
+        >
           <CategoryPills
             activeCategory={activeCategory}
             onSelectCategory={loadCategoryFeed}
@@ -199,8 +210,18 @@ export function KudTubeApp() {
         </main>
       )}
 
+      {/* Full-Screen Expanded Music Player */}
+      {currentTrack && isPlayerExpanded && (
+        <ExpandedMusicPlayer onPlayVideo={(v) => handlePlayVideo(v)} />
+      )}
+
+      {/* Sticky Bottom Global Music Bar (Persists across ALL views until closed or video played) */}
+      {currentTrack && !isPlayerExpanded && currentView !== 'watch' && (
+        <GlobalMusicBar onOpenMusicView={() => setCurrentView('music_offline')} />
+      )}
+
       {/* Mobile Bottom Navigation Bar (YouTube / YouTube Music style) */}
-      {currentView !== 'watch' && (
+      {currentView !== 'watch' && !isPlayerExpanded && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md border-t border-gray-200 dark:border-[#272727] flex items-center justify-around py-1.5 px-2 select-none">
           <button
             onClick={() => loadCategoryFeed('trending')}
@@ -278,7 +299,9 @@ export function KudTubeApp() {
 export default function App() {
   return (
     <ThemeProvider>
-      <KudTubeApp />
+      <MusicProvider>
+        <KudTubeApp />
+      </MusicProvider>
     </ThemeProvider>
   );
 }

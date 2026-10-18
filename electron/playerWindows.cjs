@@ -31,6 +31,7 @@ class PlayerWindowManager {
       return this.playerWindow;
     }
 
+    const HEADER_HEIGHT = 56;
     const contentBounds = this.mainWindow.getContentBounds();
     const bounds = initialBounds || this.targetBounds || {
       x: 24,
@@ -39,8 +40,9 @@ class PlayerWindowManager {
       height: Math.round(contentBounds.width * 0.65 * (9 / 16)),
     };
 
+    const clampedY = Math.max(HEADER_HEIGHT, bounds.y);
     const targetX = Math.round(contentBounds.x + bounds.x);
-    const targetY = Math.round(contentBounds.y + bounds.y);
+    const targetY = Math.round(contentBounds.y + clampedY);
     const targetWidth = Math.max(Math.round(bounds.width), 10);
     const targetHeight = Math.max(Math.round(bounds.height), 10);
 
@@ -118,11 +120,24 @@ class PlayerWindowManager {
     if (!rect || !this.isOpen() || this.isFullscreen) return;
     this.targetBounds = rect;
 
+    const HEADER_HEIGHT = 56;
     const contentBounds = this.mainWindow.getContentBounds();
+    const clampedY = Math.max(HEADER_HEIGHT, rect.y);
     const targetX = Math.round(contentBounds.x + rect.x);
-    const targetY = Math.round(contentBounds.y + rect.y);
+    const targetY = Math.round(contentBounds.y + clampedY);
     const targetWidth = Math.max(Math.round(rect.width), 10);
-    const targetHeight = Math.max(Math.round(rect.height), 10);
+    const targetHeight = Math.max(Math.round(rect.height), 0);
+
+    if (targetHeight <= 0) {
+      if (this.playerWindow.isVisible()) {
+        this.playerWindow.hide();
+      }
+      return;
+    }
+
+    if (!this.playerWindow.isVisible()) {
+      this.playerWindow.show();
+    }
 
     this.playerWindow.setBounds({
       x: targetX,
