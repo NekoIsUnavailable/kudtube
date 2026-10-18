@@ -79,15 +79,15 @@ export const DownloadsView: React.FC<DownloadsViewProps> = ({ onPlay }) => {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5 sm:gap-3">
           {downloads.map((item) => (
             <div
               key={item.id}
               onClick={() => handlePlayDownloaded(item)}
-              className="group flex items-center justify-between gap-4 p-3 rounded-xl bg-gray-50 dark:bg-[#181818] hover:bg-gray-100 dark:hover:bg-[#202020] border border-gray-200 dark:border-[#272727] cursor-pointer transition shadow-sm"
+              className="group flex items-center justify-between gap-2.5 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-gray-50 dark:bg-[#181818] hover:bg-gray-100 dark:hover:bg-[#202020] border border-gray-200 dark:border-[#272727] cursor-pointer transition shadow-sm"
             >
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="relative aspect-video w-32 rounded-lg overflow-hidden bg-black flex-shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                <div className="relative aspect-video w-28 sm:w-36 rounded-lg overflow-hidden bg-black flex-shrink-0">
                   <img
                     src={item.thumbnail || ''}
                     alt=""

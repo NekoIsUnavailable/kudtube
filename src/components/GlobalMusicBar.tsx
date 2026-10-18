@@ -43,7 +43,7 @@ export const GlobalMusicBar: React.FC<GlobalMusicBarProps> = ({ onOpenMusicView 
   return (
     <div
       onClick={handleExpand}
-      className="fixed inset-x-0 bottom-[56px] md:bottom-0 z-40 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 px-3 sm:px-4 py-2 shadow-2xl flex flex-col gap-1 select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-[#181818] transition-colors"
+      className="fixed inset-x-0 bottom-[52px] md:bottom-0 z-40 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 px-3 sm:px-4 py-2 shadow-2xl flex flex-col gap-1 select-none cursor-pointer hover:bg-gray-50 dark:hover:bg-[#181818] transition-colors"
     >
       {/* Top Edge Red Progress Scrubber Line */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-white/10">

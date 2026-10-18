@@ -12,7 +12,7 @@ import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import { GlobalMusicBar } from './components/GlobalMusicBar';
 import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
-import { Flame, Headphones, Download, ListPlus, History } from 'lucide-react';
+import { Home, Headphones, Download, ListPlus, History } from 'lucide-react';
 import {
   getWatchLater,
   getHistory,
@@ -226,12 +226,12 @@ export function KudTubeApp() {
           <button
             onClick={() => loadCategoryFeed('trending')}
             className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'home' && activeCategory === 'trending'
+              currentView === 'home'
                 ? 'text-red-600 dark:text-red-500 font-bold'
                 : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
             }`}
           >
-            <Flame className="w-5 h-5" />
+            <Home className="w-5 h-5" />
             <span className="text-[10px]">Home</span>
           </button>
 

@@ -5,6 +5,7 @@ import {
   ListPlus,
   ThumbsUp,
   Check,
+  Share2,
 } from 'lucide-react';
 import type { VideoItem, PlayerState, Playlist } from '../types';
 import { formatDuration, formatViews } from '../utils/format';
@@ -49,6 +50,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   const [liked, setLiked] = useState(false);
   const [inWatchLater, setInWatchLater] = useState(() => isWatchLater(video.id));
   const [descExpanded, setDescExpanded] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Sync player position with Electron native MPV window without triggering effect restarts
   const isFullscreenRef = useRef(false);
@@ -172,162 +174,197 @@ export const WatchPage: React.FC<WatchPageProps> = ({
     }
   }, [playerState.eof, playlist, video.id, upNextVideos, onSelectVideo]);
 
+  const handleShare = async () => {
+    const url = video.url || `https://www.youtube.com/watch?v=${video.id}`;
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+    }
+  };
+
   return (
     <div
       className="w-full min-h-screen bg-white dark:bg-[#0f0f0f] text-black dark:text-white pb-24 transition-colors"
     >
       <div
-        className={`mx-auto p-4 lg:p-6 flex flex-col gap-6 transition-all ${
+        className={`mx-auto p-0 sm:p-4 lg:p-6 flex flex-col gap-4 sm:gap-6 transition-all ${
           isTheater ? 'max-w-full' : 'max-w-[1700px] lg:flex-row'
         }`}
       >
         {/* Left Column: Player & Video Info */}
-        <div className="flex-1 min-w-0 flex flex-col gap-4">
-          {/* Video Player Box Anchor (Native MPV and PlayerOverlay render here) */}
+        <div className="flex-1 min-w-0 flex flex-col gap-3 sm:gap-4">
+          {/* Video Player Box Anchor (Edge-to-edge on mobile, rounded on desktop) */}
           <div
             ref={containerRef}
-            className={`relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
+            className={`relative aspect-video w-full rounded-none sm:rounded-2xl overflow-hidden bg-black shadow-2xl transition-all ${
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
           />
 
-          {/* Video Title */}
-          <h1 className="text-xl font-bold tracking-tight text-black dark:text-white leading-tight">
-            {video.title}
-          </h1>
+          {/* Details Section (Indented slightly on mobile for padding) */}
+          <div className="px-3 sm:px-0 flex flex-col gap-3 sm:gap-4">
+            {/* Video Title */}
+            <h1 className="text-base sm:text-xl font-bold tracking-tight text-black dark:text-white leading-snug">
+              {video.title}
+            </h1>
 
-          {/* Channel Row & Action Buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-gray-200 dark:border-[#272727]">
-            {/* Channel Info */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#252525] flex items-center justify-center font-bold text-sm text-gray-600 dark:text-gray-300 uppercase shadow-inner">
-                {video.channel.charAt(0)}
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-sm text-black dark:text-white leading-tight">
-                  {video.channel}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {video.viewCount ? formatViews(video.viewCount) : 'YouTube Video'}
-                </span>
-              </div>
-            </div>
-
-            {/* Actions: Like, Watch Later, Download, Playlist */}
-            <div className="flex items-center gap-2">
-              {/* Like Button */}
-              <button
-                onClick={() => setLiked((l) => !l)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition ${
-                  liked
-                    ? 'bg-red-600 text-white shadow'
-                    : 'bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838]'
-                }`}
-              >
-                <ThumbsUp className={`w-3.5 h-3.5 ${liked ? 'fill-current' : ''}`} />
-                <span>{liked ? 'Liked' : 'Like'}</span>
-              </button>
-
-              {/* Watch Later Button */}
-              <button
-                onClick={() => setInWatchLater(toggleWatchLater(video))}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition ${
-                  inWatchLater
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838]'
-                }`}
-              >
-                {inWatchLater ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                <span>{inWatchLater ? 'Saved' : 'Watch Later'}</span>
-              </button>
-
-              {/* Download Offline Button / Saved Badge */}
-              {video.isOffline ? (
-                <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 select-none">
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Saved Offline</span>
+            {/* Channel Row & Action Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200 dark:border-[#272727]">
+              {/* Channel Info & Subscribe Button */}
+              <div className="flex items-center justify-between sm:justify-start gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-200 dark:bg-[#252525] flex items-center justify-center font-bold text-sm text-gray-600 dark:text-gray-300 uppercase shadow-inner flex-shrink-0">
+                    {video.channel.charAt(0)}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-bold text-sm text-black dark:text-white leading-tight truncate">
+                      {video.channel}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {video.viewCount ? formatViews(video.viewCount) : 'YouTube Video'}
+                    </span>
+                  </div>
                 </div>
-              ) : (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDownloadMenu((prev) => !prev)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download</span>
-                  </button>
 
-                {showDownloadMenu && (
-                  <div className="absolute right-0 top-10 w-44 bg-white dark:bg-[#222222] border border-gray-200 dark:border-[#333333] rounded-xl shadow-2xl py-1.5 z-50 text-xs font-medium">
+                {/* YouTube Style Subscribe Button */}
+                <button
+                  onClick={() => setIsSubscribed((s) => !s)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition shadow-sm ml-2 ${
+                    isSubscribed
+                      ? 'bg-gray-200 text-gray-800 dark:bg-[#272727] dark:text-white'
+                      : 'bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200'
+                  }`}
+                >
+                  {isSubscribed ? 'Subscribed' : 'Subscribe'}
+                </button>
+              </div>
+
+              {/* Actions: Like, Watch Later, Download, Playlist, Share */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                {/* Like Button */}
+                <button
+                  onClick={() => setLiked((l) => !l)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                    liked
+                      ? 'bg-red-600 text-white shadow'
+                      : 'bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838]'
+                  }`}
+                >
+                  <ThumbsUp className={`w-3.5 h-3.5 ${liked ? 'fill-current' : ''}`} />
+                  <span>{liked ? 'Liked' : 'Like'}</span>
+                </button>
+
+                {/* Watch Later Button */}
+                <button
+                  onClick={() => setInWatchLater(toggleWatchLater(video))}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                    inWatchLater
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838]'
+                  }`}
+                >
+                  {inWatchLater ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                  <span>{inWatchLater ? 'Saved' : 'Watch Later'}</span>
+                </button>
+
+                {/* Download Offline Button / Saved Badge */}
+                {video.isOffline ? (
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 select-none whitespace-nowrap">
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Downloaded</span>
+                  </div>
+                ) : (
+                  <div className="relative">
                     <button
-                      onClick={() => {
-                        setShowDownloadMenu(false);
-                        onDownload(video, '1080p');
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                      onClick={() => setShowDownloadMenu((prev) => !prev)}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
                     >
-                      <span>1080p Full HD</span>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download</span>
                     </button>
-                    <button
-                      onClick={() => {
-                        setShowDownloadMenu(false);
-                        onDownload(video, '720p');
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
-                    >
-                      <span>720p HD</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowDownloadMenu(false);
-                        onDownload(video, 'audio');
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
-                    >
-                      <span>Audio Only (MP3)</span>
-                    </button>
+
+                    {showDownloadMenu && (
+                      <div className="absolute left-0 sm:right-0 sm:left-auto top-9 w-44 bg-white dark:bg-[#222222] border border-gray-200 dark:border-[#333333] rounded-xl shadow-2xl py-1.5 z-50 text-xs font-medium">
+                        <button
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownload(video, '1080p');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                        >
+                          <span>1080p Full HD</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownload(video, '720p');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                        >
+                          <span>720p HD</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDownloadMenu(false);
+                            onDownload(video, 'audio');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#303030] transition flex items-center justify-between"
+                        >
+                          <span>Audio Only (MP3)</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* Add to Playlist */}
-              {onAddToPlaylist && (
+                {/* Add to Playlist */}
+                {onAddToPlaylist && (
+                  <button
+                    onClick={() => onAddToPlaylist(video)}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
+                    title="Add to Playlist"
+                  >
+                    <ListPlus className="w-3.5 h-3.5" />
+                    <span>Save</span>
+                  </button>
+                )}
+
+                {/* Share Button */}
                 <button
-                  onClick={() => onAddToPlaylist(video)}
-                  className="p-2 rounded-full bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
-                  title="Add to Playlist"
+                  onClick={handleShare}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
+                  title="Share"
                 >
-                  <ListPlus className="w-4 h-4" />
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share</span>
                 </button>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Collapsible Description Box */}
-          <div
-            onClick={() => setDescExpanded((p) => !p)}
-            className="p-3.5 rounded-xl bg-[#f2f2f2] dark:bg-[#202020] cursor-pointer hover:bg-[#e8e8e8] dark:hover:bg-[#252525] transition"
-          >
-            <div className="flex items-center gap-2 font-bold text-xs text-black dark:text-white mb-1.5">
-              {video.viewCount ? <span>{formatViews(video.viewCount)}</span> : null}
-              {video.uploadDate ? <span>• {video.uploadDate}</span> : null}
-            </div>
-            <p
-              className={`text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed ${
-                descExpanded ? '' : 'line-clamp-3'
-              }`}
+            {/* Collapsible Description Box */}
+            <div
+              onClick={() => setDescExpanded((p) => !p)}
+              className="p-3.5 rounded-xl bg-gray-100 dark:bg-[#1f1f1f] cursor-pointer hover:bg-gray-200 dark:hover:bg-[#252525] transition"
             >
-              {video.description || 'No description provided.'}
-            </p>
-            <button className="mt-2 text-xs font-semibold text-gray-900 dark:text-gray-100 hover:underline">
-              {descExpanded ? 'Show less' : 'Show more'}
-            </button>
+              <div className="flex items-center gap-2 font-bold text-xs text-black dark:text-white mb-1.5">
+                {video.viewCount ? <span>{formatViews(video.viewCount)}</span> : null}
+                {video.uploadDate ? <span>• {video.uploadDate}</span> : null}
+              </div>
+              <p
+                className={`text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed ${
+                  descExpanded ? '' : 'line-clamp-3'
+                }`}
+              >
+                {video.description || 'No description provided.'}
+              </p>
+              <button className="mt-2 text-xs font-semibold text-gray-900 dark:text-gray-100 hover:underline">
+                {descExpanded ? 'Show less' : 'Show more'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Right Column: Up Next & Active Playlist */}
-        <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-3">
+        <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-3 px-3 sm:px-0">
           {/* Active Playlist Box */}
           {playlist && (
             <div className="rounded-xl border border-gray-200 dark:border-[#272727] bg-[#f8f8f8] dark:bg-[#1a1a1a] p-3 mb-2 shadow-sm">
@@ -390,7 +427,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                 onClick={() => onSelectVideo(item)}
                 className="group flex gap-2.5 cursor-pointer select-none"
               >
-                <div className="relative aspect-video w-40 rounded-lg overflow-hidden bg-gray-200 dark:bg-[#202020] flex-shrink-0">
+                <div className="relative aspect-video w-36 sm:w-40 rounded-lg overflow-hidden bg-gray-200 dark:bg-[#202020] flex-shrink-0">
                   {item.thumbnail ? (
                     <img
                       src={item.thumbnail}

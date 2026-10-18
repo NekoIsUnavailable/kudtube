@@ -22,11 +22,11 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 p-4">
-        {Array.from({ length: 12 }).map((_, i) => (
+      <div className="grid grid-cols-1 gap-y-6 sm:gap-x-4 sm:gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-0 sm:p-4">
+        {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex flex-col gap-2.5 animate-pulse">
-            <div className="aspect-video w-full rounded-xl bg-gray-200 dark:bg-[#202020]" />
-            <div className="flex gap-3">
+            <div className="aspect-video w-full rounded-none sm:rounded-xl bg-gray-200 dark:bg-[#202020]" />
+            <div className="flex gap-3 px-3 sm:px-0">
               <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-[#202020] flex-shrink-0" />
               <div className="flex flex-col gap-2 w-full">
                 <div className="h-4 bg-gray-200 dark:bg-[#202020] rounded w-5/6" />
@@ -50,7 +50,7 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8 p-4">
+    <div className="grid grid-cols-1 gap-y-6 sm:gap-x-4 sm:gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-0 sm:p-4">
       {videos.map((video) => (
         <VideoCard
           key={video.id}
