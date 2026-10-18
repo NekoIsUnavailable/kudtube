@@ -66,13 +66,18 @@ Most modern browsers (Chrome, Edge, Brave) require 1.5 GB to 2.5 GB of RAM just 
 **KudTube** embeds the raw, native C-based **MPV video engine** directly into a hardware-accelerated viewport, controlled over IPC pipes:
 
 * **Zero Ads & Zero Tracking**: Watch videos cleanly without sponsor breaks, popups, or banner ads.
+* **Hardware Performance Presets & Settings**: One-click optimization for your specific machine:
+  - 🐢 **Low-End Netbook (Acer D255E)**: 480p/360p, strict H.264 `avc1`, skip deblocking loopfilter, 16 MB RAM buffer (stops Atom freezing).
+  - ⚖️ **Balanced / Mid-End**: 720p HD, auto codec, hardware acceleration (`auto-safe`), 64 MB buffer.
+  - 🚀 **High Performance**: 1080p / 4K, VP9/AV1 high bitrate, 256 MB buffer, Spline36 scaling.
+  - 🛠️ **Custom Tuning**: Granular controls for resolutions, codecs, GPU scalers, and buffer memory.
 * **YouTube Live Streams**: Full support for active YouTube Live streams (`● LIVE NOW`), 24/7 news, and live concerts with rolling HLS buffering.
 * **Integrated YouTube Music Player**: Persistent mini-player bar at the bottom with seekbar, volume control, playlist queue, and full-screen expanded player.
 * **Netbook & Low-Spec Baseline**: Tuned specifically with the **Acer Aspire One D255E (Intel Atom N455, GMA 3150, 1 GB RAM)** as our performance target.
   - Automatically selects hardware-friendly **H.264 (`avc1`)** and **AAC (`mp4a`)** streams to avoid heavy VP9/AV1 CPU decoding.
   - Memory consumption capped under **250 MB**.
   - OSD and video scaling optimized with fast bilinear algorithms.
-* **Offline Library & Downloader**: Save any video (1080p, 720p, 480p, 360p) or audio-only (`.mp3`) with real-time download progress.
+* **Offline Library & Downloader**: Save any video (1080p, 720p, 480p, 360p) or audio-only (`.mp3`) with real-time download progress and custom download folder selection.
 * **Account-Free Playlists & History**: Create custom playlists and maintain watch history completely stored locally in your browser.
 
 ---

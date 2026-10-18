@@ -330,10 +330,11 @@ export const Header: React.FC<HeaderProps> = ({
             {onOpenSettings && (
               <button
                 onClick={onOpenSettings}
-                title="Settings & Optimization Presets"
-                className="p-2 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition"
+                title="Settings & Hardware Presets"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#f2f2f2] hover:bg-[#e5e5e5] dark:bg-[#272727] dark:hover:bg-[#383838] text-gray-800 dark:text-gray-200 text-xs font-bold transition shadow-sm"
               >
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                <Settings className="w-4 h-4 text-red-600 dark:text-red-500" />
+                <span className="hidden sm:inline">Settings</span>
               </button>
             )}
 

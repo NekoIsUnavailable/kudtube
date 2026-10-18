@@ -13,7 +13,7 @@ import { GlobalMusicBar } from './components/GlobalMusicBar';
 import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
 import { SettingsView } from './components/SettingsView';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
-import { Home, Headphones, Download, ListPlus, History } from 'lucide-react';
+import { Home, Headphones, Download, ListPlus, History, Settings } from 'lucide-react';
 import {
   getWatchLater,
   getHistory,
@@ -193,6 +193,10 @@ export function KudTubeApp() {
           onSelectVideo={(v) => handlePlayVideo(v, currentPlaylist)}
           onDownload={handleDownload}
           onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
+          onOpenSettings={() => {
+            setActiveCategory('settings');
+            setCurrentView('settings');
+          }}
         />
       ) : (
         <main
@@ -312,6 +316,18 @@ export function KudTubeApp() {
           >
             <History className="w-5 h-5" />
             <span className="text-[10px]">History</span>
+          </button>
+
+          <button
+            onClick={() => loadCategoryFeed('settings')}
+            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
+              currentView === 'settings'
+                ? 'text-red-600 dark:text-red-500 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-[10px]">Settings</span>
           </button>
         </nav>
       )}

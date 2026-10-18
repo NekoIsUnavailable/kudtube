@@ -6,6 +6,7 @@ import {
   ThumbsUp,
   Check,
   Share2,
+  Settings,
 } from 'lucide-react';
 import type { VideoItem, PlayerState, Playlist } from '../types';
 import { formatDuration, formatViews } from '../utils/format';
@@ -18,6 +19,7 @@ interface WatchPageProps {
   onSelectVideo: (video: VideoItem) => void;
   onDownload: (video: VideoItem, quality: string) => void;
   onAddToPlaylist?: (video: VideoItem) => void;
+  onOpenSettings?: () => void;
 }
 
 export const WatchPage: React.FC<WatchPageProps> = ({
@@ -27,6 +29,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   onSelectVideo,
   onDownload,
   onAddToPlaylist,
+  onOpenSettings,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [playerState, setPlayerState] = useState<PlayerState>({
@@ -519,6 +522,18 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                   <Share2 className="w-3.5 h-3.5" />
                   <span>Share</span>
                 </button>
+
+                {/* Hardware Presets & Settings */}
+                {onOpenSettings && (
+                  <button
+                    onClick={onOpenSettings}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838] transition"
+                    title="Hardware Presets & Optimization"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-red-600 dark:text-red-500" />
+                    <span>Presets</span>
+                  </button>
+                )}
               </div>
             </div>
 

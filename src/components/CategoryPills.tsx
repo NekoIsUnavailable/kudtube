@@ -23,16 +23,16 @@ interface CategoryPillsProps {
 const CATEGORIES: { key: CategoryKey; label: string; icon: React.FC<{ className?: string }> }[] = [
   { key: 'trending', label: 'Trending', icon: Flame },
   { key: 'live', label: 'Live', icon: Radio },
+  { key: 'settings', label: 'Settings & Presets', icon: Settings },
+  { key: 'offline', label: 'Downloads', icon: Download },
   { key: 'music', label: 'Music', icon: Music },
   { key: 'music_offline', label: 'My Music', icon: Headphones },
   { key: 'gaming', label: 'Gaming', icon: Gamepad2 },
   { key: 'trailers', label: 'Trailers', icon: Film },
   { key: 'podcasts', label: 'Podcasts', icon: Mic },
-  { key: 'offline', label: 'Downloads', icon: Download },
   { key: 'playlists', label: 'Playlists', icon: ListPlus },
   { key: 'watch_later', label: 'Watch Later', icon: Clock },
   { key: 'history', label: 'History', icon: History },
-  { key: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export const CategoryPills: React.FC<CategoryPillsProps> = ({
