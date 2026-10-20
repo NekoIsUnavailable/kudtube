@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, Clock, Trash2, Settings } from 'lucide-react';
+import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, ArrowRight, Clock, Trash2, Settings } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import kudLogo from '../assets/logo.png';
 
@@ -7,6 +7,10 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   currentQuery: string;
   isWatchPage?: boolean;
+  canGoBack?: boolean;
+  canGoForward?: boolean;
+  onGoBack?: () => void;
+  onGoForward?: () => void;
   onBackToBrowse?: () => void;
   onOpenSettings?: () => void;
 }
@@ -31,7 +35,11 @@ function saveStoredHistory(history: string[]) {
 export const Header: React.FC<HeaderProps> = ({
   onSearch,
   currentQuery,
-  isWatchPage,
+  isWatchPage: _isWatchPage,
+  canGoBack,
+  canGoForward,
+  onGoBack,
+  onGoForward,
   onBackToBrowse,
   onOpenSettings,
 }) => {
@@ -206,20 +214,30 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       ) : (
         <>
-          {/* Left: Logo & Back Button */}
-          <div className="flex items-center gap-2 sm:gap-3" style={{ WebkitAppRegion: 'no-drag' } as any}>
-            {isWatchPage && onBackToBrowse && (
+          {/* Left: Navigation Buttons & Logo */}
+          <div className="flex items-center gap-1 sm:gap-2" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            {/* Browser / History Back & Forward Buttons */}
+            <button
+              onClick={onGoBack}
+              disabled={!canGoBack}
+              title="Back to previous page (Alt + Left Arrow)"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 disabled:opacity-25 disabled:pointer-events-none transition"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            {canGoForward && (
               <button
-                onClick={onBackToBrowse}
-                title="Back to previous page"
-                className="p-2 -ml-1 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition"
+                onClick={onGoForward}
+                title="Forward to next page (Alt + Right Arrow)"
+                className="hidden sm:inline-flex p-1.5 sm:p-2 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             )}
+
             <div
               onClick={onBackToBrowse}
-              className="flex items-center gap-2 cursor-pointer group"
+              className="flex items-center gap-2 cursor-pointer group ml-0.5 sm:ml-1"
               title="KudTube Home"
             >
               <img

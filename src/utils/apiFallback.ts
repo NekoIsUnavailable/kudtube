@@ -209,3 +209,52 @@ export async function searchVideosFallback(query: string, limit = 30): Promise<V
   // 2. Fallback to active Invidious instances
   return searchViaInvidious(query, limit);
 }
+
+/**
+ * Fallback to resolve direct download streams for Android & Web
+ */
+export async function fetchDownloadStreamFallback(
+  videoId: string,
+  isAudio: boolean
+): Promise<{ url: string; ext: string; mime: string } | null> {
+  for (const inst of INVIDIOUS_INSTANCES) {
+    try {
+      const res = await fetch(`${inst}/api/v1/videos/${videoId}`, {
+        signal: AbortSignal.timeout(6000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (isAudio) {
+        const audio =
+          data.adaptiveFormats?.find(
+            (f: any) => f.itag === '140' || (f.type && f.type.startsWith('audio/mp4'))
+          ) || data.adaptiveFormats?.find((f: any) => f.type && f.type.startsWith('audio/'));
+        if (audio && audio.url) {
+          return {
+            url: audio.url,
+            ext: audio.container || 'm4a',
+            mime: audio.type || 'audio/mp4',
+          };
+        }
+      } else {
+        const stream =
+          data.formatStreams?.find(
+            (f: any) => f.itag === '18' || f.container === 'mp4'
+          ) ||
+          data.formatStreams?.[0] ||
+          data.adaptiveFormats?.find((f: any) => f.container === 'mp4');
+        if (stream && stream.url) {
+          return {
+            url: stream.url,
+            ext: stream.container || 'mp4',
+            mime: stream.type || 'video/mp4',
+          };
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+

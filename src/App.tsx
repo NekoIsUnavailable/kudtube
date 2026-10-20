@@ -20,7 +20,11 @@ import {
   appendHistory,
   getSettings,
 } from './utils/storage';
-import { fetchCategoryFeedFallback, searchVideosFallback } from './utils/apiFallback';
+import {
+  fetchCategoryFeedFallback,
+  searchVideosFallback,
+  fetchDownloadStreamFallback,
+} from './utils/apiFallback';
 
 export type ViewType =
   | 'home'
@@ -32,13 +36,25 @@ export type ViewType =
   | 'history'
   | 'settings';
 
+interface NavState {
+  view: ViewType;
+  category: CategoryKey;
+  searchQuery: string;
+  video: VideoItem | null;
+  playlist: Playlist | null;
+  videos: VideoItem[];
+}
+
 export function KudTubeApp() {
   const [currentView, setCurrentView] = useState<ViewType>('home');
-  const [previousView, setPreviousView] = useState<ViewType>('home');
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('trending');
   const [searchQuery, setSearchQuery] = useState('');
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Navigation History Stack (for Back / Forward on Desktop & Android)
+  const [historyStack, setHistoryStack] = useState<NavState[]>([]);
+  const [forwardStack, setForwardStack] = useState<NavState[]>([]);
 
   // Playback state
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
@@ -54,8 +70,27 @@ export function KudTubeApp() {
   // Downloads in progress: id -> percent
   const [downloadingIds, setDownloadingIds] = useState<Record<string, number>>({});
 
+  const getCurrentNavState = useCallback((): NavState => ({
+    view: currentView,
+    category: activeCategory,
+    searchQuery,
+    video: currentVideo,
+    playlist: currentPlaylist,
+    videos,
+  }), [currentView, activeCategory, searchQuery, currentVideo, currentPlaylist, videos]);
+
+  const pushStateToHistory = useCallback(() => {
+    const currentState = getCurrentNavState();
+    setHistoryStack((prev) => [...prev.slice(-30), currentState]);
+    setForwardStack([]);
+  }, [getCurrentNavState]);
+
   // Fetch category or default feed
   const loadCategoryFeed = useCallback(async (category: CategoryKey) => {
+    if (category !== activeCategory || currentView !== 'home') {
+      pushStateToHistory();
+    }
+
     setActiveCategory(category);
     if (category === 'offline') {
       setCurrentView('offline');
@@ -97,12 +132,30 @@ export function KudTubeApp() {
       setVideos(results);
     }
     setLoading(false);
-  }, []);
+  }, [activeCategory, currentView, pushStateToHistory]);
 
   // Initial load: Trending feed
   useEffect(() => {
-    loadCategoryFeed('trending');
-  }, [loadCategoryFeed]);
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      if (window.kudtubeAPI?.getCategoryFeed) {
+        const res = await window.kudtubeAPI.getCategoryFeed('trending', 24);
+        if (mounted && res.ok) {
+          setVideos(res.results);
+        }
+      } else {
+        const results = await fetchCategoryFeedFallback('trending', 24);
+        if (mounted) {
+          setVideos(results);
+        }
+      }
+      if (mounted) setLoading(false);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Listen to download progress
   useEffect(() => {
@@ -125,6 +178,7 @@ export function KudTubeApp() {
 
   // Handle Search
   const handleSearch = async (query: string) => {
+    pushStateToHistory();
     setSearchQuery(query);
     setCurrentView('home');
     setLoading(true);
@@ -144,12 +198,113 @@ export function KudTubeApp() {
   // Play Video (Stops music playback if currently active)
   const handlePlayVideo = (video: VideoItem, playlist?: Playlist | null) => {
     closeMusic(false);
-    setPreviousView(currentView === 'watch' ? previousView : currentView);
+    pushStateToHistory();
     appendHistory(video);
     setCurrentVideo(video);
     setCurrentPlaylist(playlist || null);
     setCurrentView('watch');
   };
+
+  // Back Navigation Handler
+  const handleGoBack = useCallback(() => {
+    if (playlistModalVideo) {
+      setPlaylistModalVideo(null);
+      return;
+    }
+    if (isSettingsOverlayOpen) {
+      setIsSettingsOverlayOpen(false);
+      return;
+    }
+    if (historyStack.length > 0) {
+      const prevState = historyStack[historyStack.length - 1];
+      setHistoryStack((prev) => prev.slice(0, -1));
+      setForwardStack((prev) => [...prev, getCurrentNavState()]);
+
+      setCurrentView(prevState.view);
+      setActiveCategory(prevState.category);
+      setSearchQuery(prevState.searchQuery);
+      setCurrentVideo(prevState.video);
+      setCurrentPlaylist(prevState.playlist);
+      if (prevState.videos && prevState.videos.length > 0) {
+        setVideos(prevState.videos);
+      }
+      return;
+    }
+    if (currentView !== 'home') {
+      setCurrentView('home');
+      setActiveCategory('trending');
+    }
+  }, [playlistModalVideo, isSettingsOverlayOpen, historyStack, getCurrentNavState, currentView]);
+
+  // Forward Navigation Handler
+  const handleGoForward = useCallback(() => {
+    if (forwardStack.length === 0) return;
+    const nextState = forwardStack[forwardStack.length - 1];
+    setForwardStack((prev) => prev.slice(0, -1));
+    setHistoryStack((prev) => [...prev, getCurrentNavState()]);
+
+    setCurrentView(nextState.view);
+    setActiveCategory(nextState.category);
+    setSearchQuery(nextState.searchQuery);
+    setCurrentVideo(nextState.video);
+    setCurrentPlaylist(nextState.playlist);
+    if (nextState.videos && nextState.videos.length > 0) {
+      setVideos(nextState.videos);
+    }
+  }, [forwardStack, getCurrentNavState]);
+
+  const canGoBack = Boolean(
+    playlistModalVideo ||
+    isSettingsOverlayOpen ||
+    historyStack.length > 0 ||
+    currentView !== 'home'
+  );
+  const canGoForward = forwardStack.length > 0;
+
+  // Bridge check for Android hardware / gesture back button
+  useEffect(() => {
+    (window as any).__kudtubeCanGoBack = () => canGoBack;
+    return () => {
+      delete (window as any).__kudtubeCanGoBack;
+    };
+  }, [canGoBack]);
+
+  // Listen for keyboard navigation (Alt+Left/Right), mouse auxiliary buttons, and Android back
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleGoBack();
+      } else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleGoForward();
+      }
+    };
+
+    const handleMouseAux = (e: MouseEvent) => {
+      if (e.button === 3) {
+        e.preventDefault();
+        handleGoBack();
+      } else if (e.button === 4) {
+        e.preventDefault();
+        handleGoForward();
+      }
+    };
+
+    const handleAndroidBack = () => {
+      handleGoBack();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('auxclick', handleMouseAux);
+    window.addEventListener('kudtube:back', handleAndroidBack);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('auxclick', handleMouseAux);
+      window.removeEventListener('kudtube:back', handleAndroidBack);
+    };
+  }, [handleGoBack, handleGoForward]);
 
   // Hide native video player while modal or settings overlay is open so it does not punch through
   useEffect(() => {
@@ -160,26 +315,58 @@ export function KudTubeApp() {
     }
   }, [playlistModalVideo, isSettingsOverlayOpen]);
 
-  // Back to previous browse page
-  const handleBackToBrowse = () => {
-    setCurrentView(previousView || 'home');
-  };
-
   // Open Settings handler
   const handleOpenSettings = () => {
     if (currentView === 'watch') {
       setIsSettingsOverlayOpen(true);
     } else {
-      setPreviousView(currentView);
+      pushStateToHistory();
       setCurrentView('settings');
     }
   };
 
-  // Start Download
+  // Start Download (Electron native via yt-dlp + Android / Web fallback via direct stream)
   const handleDownload = async (video: VideoItem, quality: string) => {
     setDownloadingIds((prev) => ({ ...prev, [video.id]: 0 }));
     if (window.kudtubeAPI?.startDownload) {
       await window.kudtubeAPI.startDownload(video, quality, getSettings());
+      return;
+    }
+
+    // Android / Web fallback
+    try {
+      const isAudio = quality === 'audio';
+      const cleanTitle = (video.title || 'video').replace(/[\\/:*?"<>|]/g, '').trim();
+      const streamInfo = await fetchDownloadStreamFallback(video.id, isAudio);
+
+      const ext = streamInfo?.ext || (isAudio ? 'm4a' : 'mp4');
+      const filename = `${cleanTitle}.${ext}`;
+      const downloadUrl = streamInfo?.url
+        ? `${streamInfo.url}#kudtube_filename=${encodeURIComponent(filename)}`
+        : `https://invidious.f5.si/latest_version?id=${video.id}&itag=${isAudio ? '140' : '18'}#kudtube_filename=${encodeURIComponent(filename)}`;
+
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) {
+          document.body.removeChild(a);
+        }
+        setDownloadingIds((prev) => {
+          const next = { ...prev };
+          delete next[video.id];
+          return next;
+        });
+      }, 2500);
+    } catch {
+      setDownloadingIds((prev) => {
+        const next = { ...prev };
+        delete next[video.id];
+        return next;
+      });
     }
   };
 
@@ -189,7 +376,11 @@ export function KudTubeApp() {
         onSearch={handleSearch}
         currentQuery={searchQuery}
         isWatchPage={currentView === 'watch'}
-        onBackToBrowse={handleBackToBrowse}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
+        onGoBack={handleGoBack}
+        onGoForward={handleGoForward}
+        onBackToBrowse={() => loadCategoryFeed('trending')}
         onOpenSettings={handleOpenSettings}
       />
 
@@ -234,7 +425,7 @@ export function KudTubeApp() {
           )}
 
           {currentView === 'settings' && (
-            <SettingsView onBack={handleBackToBrowse} />
+            <SettingsView onBack={handleGoBack} />
           )}
 
           {(currentView === 'home' || currentView === 'watch_later' || currentView === 'history') && (
