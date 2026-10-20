@@ -59,9 +59,10 @@
         "deb"
       ],
       "icon": "build/icon.png",
-      "category": "AudioVideo",
-      "maintainer": "KudTube Developers <dev@kudtube.app>",
-      "desktopName": "kudtube"
+      "category": "AudioVideo"
+    },
+    "deb": {
+      "maintainer": "KudTube Developers <dev@kudtube.app>"
     },
     "nsis": {
       "oneClick": true,
