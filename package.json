@@ -2,6 +2,8 @@
   "name": "kudtube",
   "private": true,
   "version": "1.0.1",
+  "description": "Lightweight YouTube client with native MPV hardware-accelerated playback and offline media support.",
+  "author": "KudTube Developers <dev@kudtube.app>",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -30,7 +32,18 @@
         "nsis"
       ],
       "icon": "build/icon.png",
-      "compression": "normal"
+      "compression": "normal",
+      "extraResources": [
+        {
+          "from": "electron/bin/mpv",
+          "to": "mpv",
+          "filter": [
+            "mpv.exe",
+            "yt-dlp.exe",
+            "ffmpeg.exe"
+          ]
+        }
+      ]
     },
     "mac": {
       "target": [
@@ -46,7 +59,9 @@
         "deb"
       ],
       "icon": "build/icon.png",
-      "category": "AudioVideo"
+      "category": "AudioVideo",
+      "maintainer": "KudTube Developers <dev@kudtube.app>",
+      "desktopName": "kudtube"
     },
     "nsis": {
       "oneClick": true,
@@ -69,15 +84,6 @@
         "to": "icons",
         "filter": [
           "icon.png"
-        ]
-      },
-      {
-        "from": "electron/bin/mpv",
-        "to": "mpv",
-        "filter": [
-          "mpv.exe",
-          "yt-dlp.exe",
-          "ffmpeg.exe"
         ]
       }
     ]

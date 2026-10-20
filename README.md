@@ -1,133 +1,136 @@
 <div align="center">
 
-<img src="build/icon.png" alt="KudTube Logo" width="132" style="border-radius: 28px; box-shadow: 0 10px 36px rgba(0,0,0,0.4);" />
+<img src="build/icon.png" alt="KudTube Logo" width="128" style="border-radius: 24px;" />
 
-# 📺 KudTube
+# KudTube
 
-### *Ultra-lightweight, hardware-accelerated YouTube & YouTube Music client tuned for older machines and modern setups.*
+### Lightweight YouTube and YouTube Music client with native MPV hardware-accelerated playback and offline media support.
 
-[![Release](https://img.shields.io/github/v/release/NekoIsUnavailable/kudtube?style=for-the-badge&color=FF0000&logo=github)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%7C%207-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20Debian-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%7C%20Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Android](https://img.shields.io/badge/Android-APK%20Direct-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/NekoIsUnavailable/kudtube?style=flat-square&color=black&logo=github)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%7C%207-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20Debian-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%7C%20Intel-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![Android](https://img.shields.io/badge/Android-APK%20Direct-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
 
-### 📥 One-Click Downloads (v1.0.0)
+### Direct Downloads (v1.0.1)
 
 <p align="center">
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-Setup-1.0.0.exe">
-    <img src="https://img.shields.io/badge/Download_for_Windows-Installer_(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="42" alt="Download Windows Installer"/>
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-Setup-1.0.1.exe">
+    <img src="https://img.shields.io/badge/Download_for_Windows-Installer_(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="40" alt="Download Windows Installer"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0-win.zip">
-    <img src="https://img.shields.io/badge/Download_Portable-Windows_(.zip)-005A9E?style=for-the-badge&logo=windows&logoColor=white" height="42" alt="Download Windows Portable"/>
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1-win.zip">
+    <img src="https://img.shields.io/badge/Download_Portable-Windows_(.zip)-005A9E?style=for-the-badge&logo=windows&logoColor=white" height="40" alt="Download Windows Portable"/>
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0.AppImage">
-    <img src="https://img.shields.io/badge/Download_for_Linux-AppImage_(.AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" height="42" alt="Download Linux AppImage"/>
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.AppImage">
+    <img src="https://img.shields.io/badge/Download_for_Linux-AppImage_(.AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" height="40" alt="Download Linux AppImage"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0-arm64.dmg">
-    <img src="https://img.shields.io/badge/Download_for_macOS-Apple_Silicon_(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white" height="42" alt="Download macOS DMG"/>
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg">
+    <img src="https://img.shields.io/badge/Download_for_macOS-macOS_(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white" height="40" alt="Download macOS DMG"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/latest">
-    <img src="https://img.shields.io/badge/Download_for_Android-APK_(.apk)-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download Android APK"/>
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube.apk">
+    <img src="https://img.shields.io/badge/Download_for_Android-APK_(.apk)-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="40" alt="Download Android APK"/>
   </a>
 </p>
 
 <p align="center">
-  👉 <b><a href="https://github.com/NekoIsUnavailable/kudtube/releases">Browse all downloads, checksums & release notes</a></b>
+  <b><a href="https://github.com/NekoIsUnavailable/kudtube/releases">All Releases, Assets, and Checksums</a></b>
 </p>
 
 </div>
 
 ---
 
-## 📦 Download Packages
+## Release Packages
 
-| Platform | Format | Architecture | Download Link | Notes |
+| Platform | Format | Architecture | Download Link | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **Windows** | Setup Executable (`.exe`) | x64 / x86 | [**KudTube-Setup-1.0.0.exe**](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-Setup-1.0.0.exe) | Standard Windows NSIS installer with desktop & start menu shortcuts |
-| **Windows** | Portable Archive (`.zip`) | x64 / x86 | [**KudTube-1.0.0-win.zip**](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0-win.zip) | Standalone portable folder. No installation required (runs from USB) |
-| **Linux** | Universal AppImage (`.AppImage`) | x64 | [**KudTube-1.0.0.AppImage**](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0.AppImage) | Universal single-file Linux binary (`chmod +x` and run) |
-| **macOS** | DMG Disk Image (`.dmg`) | Apple Silicon (arm64) | [**KudTube-1.0.0-arm64.dmg**](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0-arm64.dmg) | Drag-and-drop macOS install with native traffic lights |
-| **macOS** | Portable Archive (`.zip`) | Apple Silicon (arm64) | [**KudTube-1.0.0-arm64-mac.zip**](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.0/KudTube-1.0.0-arm64-mac.zip) | Standalone unpacked macOS application |
-| **Android** | Android Package (`.apk`) | ARM64 / Universal | [**Latest Android APK**](https://github.com/NekoIsUnavailable/kudtube/releases/latest) | Native mobile container with background audio & touch controls |
+| Windows | Setup Executable (`.exe`) | x64 / x86 | [KudTube-Setup-1.0.1.exe](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-Setup-1.0.1.exe) | Standard NSIS installer with desktop and start menu shortcuts |
+| Windows | Portable Archive (`.zip`) | x64 / x86 | [KudTube-1.0.1-win.zip](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1-win.zip) | Standalone portable executable. No installation required |
+| Linux | Universal AppImage (`.AppImage`) | x64 | [KudTube-1.0.1.AppImage](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.AppImage) | Self-contained executable for all major Linux distributions |
+| Linux | Debian Package (`.deb`) | x64 | [kudtube_1.0.1_amd64.deb](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/kudtube_1.0.1_amd64.deb) | Native package for Ubuntu, Debian, and Linux Mint |
+| macOS | Disk Image (`.dmg`) | Universal | [KudTube-1.0.1.dmg](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg) | Standard macOS drag-and-drop installer |
+| Android | Package (`.apk`) | ARM64 / Universal | [KudTube.apk](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube.apk) | Standalone Android application package |
 
 ---
 
-## ✨ Why KudTube?
+## Technical Architecture
 
-Most modern browsers (Chrome, Edge, Brave) require 1.5 GB to 2.5 GB of RAM just to stream a 720p YouTube video, dropping frames on older CPUs. 
+Standard Chromium-based browsers allocate between 1.5 GB and 2.5 GB of system memory to render modern web video pipelines. Complex DOM structures, JavaScript runtime overhead, and software decoding of VP9/AV1 codecs frequently cause thermal throttling and frame drops on resource-constrained hardware.
 
-**KudTube** embeds the raw, native C-based **MPV video engine** directly into a hardware-accelerated viewport, controlled over IPC pipes:
+KudTube bypasses the browser rendering pipeline by embedding an optimized native media backend:
 
-* **Zero Ads & Zero Tracking**: Watch videos cleanly without sponsor breaks, popups, or banner ads.
-* **Hardware Performance Presets & Settings**: One-click optimization for your specific machine:
-  - 🐢 **Low-End Netbook (Acer D255E)**: 480p/360p, strict H.264 `avc1`, skip deblocking loopfilter, 16 MB RAM buffer (stops Atom freezing).
-  - ⚖️ **Balanced / Mid-End**: 720p HD, auto codec, hardware acceleration (`auto-safe`), 64 MB buffer.
-  - 🚀 **High Performance**: 1080p / 4K, VP9/AV1 high bitrate, 256 MB buffer, Spline36 scaling.
-  - 🛠️ **Custom Tuning**: Granular controls for resolutions, codecs, GPU scalers, and buffer memory.
-* **YouTube Live Streams**: Full support for active YouTube Live streams (`● LIVE NOW`), 24/7 news, and live concerts with rolling HLS buffering.
-* **Integrated YouTube Music Player**: Persistent mini-player bar at the bottom with seekbar, volume control, playlist queue, and full-screen expanded player.
-* **Netbook & Low-Spec Baseline**: Tuned specifically with the **Acer Aspire One D255E (Intel Atom N455, GMA 3150, 1 GB RAM)** as our performance target.
-  - Automatically selects hardware-friendly **H.264 (`avc1`)** and **AAC (`mp4a`)** streams to avoid heavy VP9/AV1 CPU decoding.
-  - Memory consumption capped under **250 MB**.
-  - OSD and video scaling optimized with fast bilinear algorithms.
-* **Offline Library & Downloader**: Save any video (1080p, 720p, 480p, 360p) or audio-only (`.mp3`) with real-time download progress and custom download folder selection.
-* **Account-Free Playlists & History**: Create custom playlists and maintain watch history completely stored locally in your browser.
+1. **Native Media Pipeline**: Video streams are handed directly to an embedded C-based MPV sub-process running in a hardware-accelerated viewport, managed over IPC via JSON-RPC.
+2. **Direct Hardware Decoding**: Supports hardware decoders (`d3d11va`, `vaapi`, `videotoolbox`) with safe software fallback.
+3. **Codec Prioritization**: Intelligent format filtering prefers baseline H.264 (`avc1`) and AAC (`mp4a`) streams over compute-heavy VP9/AV1 profiles for older processors.
+4. **Deblocking & Cache Optimization**: Low-level MPV controls permit skipping H.264 non-keyframe deblocking loop filters and bounding demuxer memory consumption to 16 MB–64 MB.
+5. **Decoupled User Interface**: The UI is built with React 19 and compiled with Vite and Tailwind CSS. The interface communicates asynchronously with Electron IPC handlers, ensuring zero UI thread blocking during video seeking or playback.
 
 ---
 
-## ⚡ Performance Comparison
+## Features
 
-| Metric | Google Chrome / Edge | Typical Electron Wrapper | **KudTube (MPV Engine)** |
+- **Hardware Performance Presets**:
+  - *Low-end*: Enforces H.264 up to 480p, skips non-keyframe deblocking, and limits demuxer RAM cache to 16 MB.
+  - *Balanced*: 720p HD streaming with hardware acceleration and 64 MB demuxer buffer.
+  - *High performance*: 1080p / 4K playback with high-fidelity Spline36 scaling and VP9/AV1 codec support.
+- **Persistent Media Player**: Includes a global audio playback bar and full-screen player that persists across views without interrupting active streams.
+- **YouTube Live Stream Support**: Native HLS stream demuxing for 24/7 news, music broadcasts, and events.
+- **Offline Storage**: Integrated multi-resolution video and audio downloader powered by FFmpeg and yt-dlp, with custom destination folder selection.
+- **Local Data Model**: Client-side storage for playlists, watch history, and search suggestions with zero external tracking.
+- **Native Settings Interface**: Structured two-column layout following desktop standards with dedicated sections for playback, storage, privacy, and low-level engine parameters.
+
+---
+
+## Performance Benchmark
+
+| Metric | Chromium / Web Browser | Standard Electron Wrapper | KudTube (Embedded MPV) |
 | :--- | :--- | :--- | :--- |
-| **Idle RAM Usage** | ~800 MB | ~500 MB | **~120 MB** |
-| **720p Playback RAM** | 1.8 GB – 2.4 GB | ~1.1 GB | **< 240 MB** |
-| **CPU Usage (Atom N455)** | 95% – 100% (Stuttering) | 80% – 95% | **25% – 45% (Smooth)** |
-| **Preferred Codec** | VP9 / AV1 (Heavy) | VP9 (Heavy) | **H.264 AVC1 (Hardware Accelerated)** |
-| **Offline Downloading** | Requires extensions | Inconsistent | **Built-in yt-dlp & FFmpeg** |
+| **Idle Memory Footprint** | ~800 MB | ~500 MB | **~120 MB** |
+| **720p Video Playback Memory** | 1.8 GB – 2.4 GB | ~1.1 GB | **< 240 MB** |
+| **CPU Usage on Low-End Chips** | 90% – 100% (Stuttering) | 75% – 90% | **25% – 40% (Smooth)** |
+| **Default Codec Priority** | VP9 / AV1 (CPU-Heavy) | WebM / VP9 | **H.264 AVC1 (Hardware Accelerated)** |
+| **Offline Downloader** | Requires browser extensions | Inconsistent | **Integrated yt-dlp + FFmpeg** |
 
 ---
 
-## 🛠️ Building from Source
+## Building from Source
 
-### Prerequisites
-- [Node.js](https://nodejs.org) (v18 or higher)
-- [npm](https://npmjs.com)
+### Requirements
+- Node.js (v20 or v22 LTS)
+- npm (v10 or higher)
 
+### Setup
 ```bash
-# 1. Clone the repository
 git clone https://github.com/NekoIsUnavailable/kudtube.git
 cd kudtube
-
-# 2. Install dependencies
 npm install
 ```
 
-### Development Server
+### Development
 ```bash
 npm start
 ```
 
-### Packaging Installers
-* **Windows (`.exe` & `.zip`)**:
+### Compiling Packages
+- **Windows**:
   ```bash
   npm run package:win
   ```
-* **Linux (`.AppImage` & `.deb`)**:
+- **Linux**:
   ```bash
   npm run package:linux
   ```
-* **macOS (`.dmg` & `.zip`)**:
+- **macOS**:
   ```bash
   npm run package:mac
   ```
-* **Android (`.apk`)**:
+- **Android**:
   ```bash
   npm run cap:sync
   cd android && ./gradlew assembleDebug
@@ -135,13 +138,14 @@ npm start
 
 ---
 
-## 🌐 Community & Releases
+## Repository and Releases
 
-* **GitHub Repository**: [https://github.com/NekoIsUnavailable/kudtube](https://github.com/NekoIsUnavailable/kudtube)
-* **Releases**: [https://github.com/NekoIsUnavailable/kudtube/releases](https://github.com/NekoIsUnavailable/kudtube/releases)
-* **Issue Tracker**: [https://github.com/NekoIsUnavailable/kudtube/issues](https://github.com/NekoIsUnavailable/kudtube/issues)
+- **GitHub Repository**: [https://github.com/NekoIsUnavailable/kudtube](https://github.com/NekoIsUnavailable/kudtube)
+- **Releases & Changelog**: [https://github.com/NekoIsUnavailable/kudtube/releases](https://github.com/NekoIsUnavailable/kudtube/releases)
+- **Issue Tracker**: [https://github.com/NekoIsUnavailable/kudtube/issues](https://github.com/NekoIsUnavailable/kudtube/issues)
 
 ---
 
-## 📄 License
-This project is open source and available under the [MIT License](LICENSE).
+## License
+
+This project is licensed under the [MIT License](LICENSE).
