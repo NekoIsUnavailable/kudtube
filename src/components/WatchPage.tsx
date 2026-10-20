@@ -348,7 +348,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                 />
               ) : (
                 <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&playsinline=1&rel=0`}
+                  src={`https://www.youtube.com/embed/${video.id}?autoplay=1&playsinline=1&enablejsapi=1`}
                   title={video.title}
                   className="w-full h-full border-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -50,6 +50,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-tools libmpv-dev mpv ffmpeg
 
+      - name: Download Windows MPV, yt-dlp, and FFmpeg binaries
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "electron/bin/mpv"
+          Write-Host "Downloading yt-dlp.exe..."
+          curl.exe -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -o "electron/bin/mpv/yt-dlp.exe"
+          Write-Host "Downloading mpv.exe..."
+          $mpvUrl = (Invoke-RestMethod -Uri "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest").assets | Where-Object { $_.name -like "mpv-x86_64-20*.7z" -and $_.name -notlike "*dev*" -and $_.name -notlike "*v3*" } | Select-Object -First 1 -ExpandProperty browser_download_url
+          curl.exe -L $mpvUrl -o "mpv.7z"
+          7z e mpv.7z "mpv.exe" -o"electron/bin/mpv" -y
+          Remove-Item "mpv.7z" -Force
+          Write-Host "Downloading ffmpeg.exe..."
+          $ffmpegUrl = (Invoke-RestMethod -Uri "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest").assets | Where-Object { $_.name -like "ffmpeg-x86_64-git*.7z" -and $_.name -notlike "*v3*" } | Select-Object -First 1 -ExpandProperty browser_download_url
+          curl.exe -L $ffmpegUrl -o "ffmpeg.7z"
+          7z e ffmpeg.7z "ffmpeg.exe" -o"electron/bin/mpv" -y
+          Remove-Item "ffmpeg.7z" -Force
+          Write-Host "Verifying binaries in electron/bin/mpv:"
+          Get-ChildItem "electron/bin/mpv"
+
       - name: Compile and Build Web Assets
         run: npm run build
 
