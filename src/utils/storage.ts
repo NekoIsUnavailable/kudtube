@@ -203,3 +203,25 @@ export function appendHistory(video: VideoItem): void {
 export function clearHistory(): void {
   localStorage.removeItem(STORAGE_HISTORY);
 }
+
+const STORAGE_OFFLINE_DOWNLOADS = 'kudtube_offline_downloads';
+
+export function getOfflineDownloads(): import('../types').DownloadItem[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_OFFLINE_DOWNLOADS);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+export function saveOfflineDownload(item: import('../types').DownloadItem): void {
+  const current = getOfflineDownloads().filter((d) => d.id !== item.id);
+  current.unshift(item);
+  localStorage.setItem(STORAGE_OFFLINE_DOWNLOADS, JSON.stringify(current));
+}
+
+export function removeOfflineDownload(id: string): void {
+  const current = getOfflineDownloads().filter((d) => d.id !== id);
+  localStorage.setItem(STORAGE_OFFLINE_DOWNLOADS, JSON.stringify(current));
+}
+

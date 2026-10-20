@@ -110,7 +110,14 @@ class MpvController {
       ? `\\\\.\\pipe\\kudtube-mpv-${process.pid}-${Date.now()}`
       : path.join(app.getPath('temp'), `kudtube-mpv-${process.pid}-${Date.now()}.sock`);
     this.pipeName = pipeName;
-    const isAudioOnly = Boolean(options.isAudio || options.quality === 'audio' || !hwnd);
+    const isAudioFile = Boolean(
+      urlOrPath &&
+      (urlOrPath.toLowerCase().endsWith('.mp3') ||
+       urlOrPath.toLowerCase().endsWith('.m4a') ||
+       urlOrPath.toLowerCase().endsWith('.wav') ||
+       urlOrPath.toLowerCase().endsWith('.flac'))
+    );
+    const isAudioOnly = Boolean(options.isAudio || options.quality === 'audio' || isAudioFile || !hwnd);
 
     const settings = options.settings || this.settings || {};
     const ramCache = settings.ramCacheMb || 32;
@@ -212,12 +219,20 @@ class MpvController {
     args.push('--', urlOrPath);
 
     const mpvPath = getMpvExecutablePath();
-    const child = spawn(mpvPath, args, { windowsHide: true, stdio: 'ignore' });
+    const child = spawn(mpvPath, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     this.process = child;
+
+    child.stderr.on('data', (d) => {
+      const errStr = d.toString().trim();
+      if (errStr.includes('Error') || errStr.includes('failed') || errStr.includes('unable to create window')) {
+        console.error('[mpv stderr]', errStr);
+      }
+    });
 
     child.on('error', (err) => {
       console.error('[mpv] spawn error:', err);
       this.state.error = `Could not start player: ${err.message}`;
+      this.state.buffering = false;
       this.emit(true);
     });
 
@@ -225,8 +240,9 @@ class MpvController {
       if (this.process === child) {
         this.process = null;
         this.socket = null;
-        if (!this.expectingExit) {
+        if (!this.expectingExit && code !== 0) {
           this.state.error = `Player closed (code ${code})`;
+          this.state.buffering = false;
           this.emit(true);
         }
       }
@@ -273,6 +289,9 @@ class MpvController {
           attempts++;
           if (attempts >= maxAttempts) {
             console.error('[mpv] failed to connect to IPC pipe');
+            this.state.error = 'Could not connect to player engine';
+            this.state.buffering = false;
+            this.emit(true);
             resolve();
           } else {
             setTimeout(tryConnect, 100);
@@ -313,7 +332,10 @@ class MpvController {
       const { name, data } = msg;
       switch (name) {
         case 'time-pos':
-          if (typeof data === 'number') this.state.timePos = data;
+          if (typeof data === 'number') {
+            this.state.timePos = data;
+            if (data > 0) this.state.buffering = false;
+          }
           break;
         case 'duration':
           if (typeof data === 'number') this.state.duration = data;
@@ -342,10 +364,16 @@ class MpvController {
       }
       this.state.loaded = true;
       this.emit();
-    } else if (msg.event === 'file-loaded') {
+    } else if (msg.event === 'file-loaded' || msg.event === 'playback-restart') {
       this.state.loaded = true;
       this.state.buffering = false;
       this.emit(true);
+    } else if (msg.event === 'end-file') {
+      if (msg.reason === 'error') {
+        this.state.error = msg.file_error || 'Failed to play media file';
+        this.state.buffering = false;
+        this.emit(true);
+      }
     } else if (msg.request_id && this.pending.has(msg.request_id)) {
       const cb = this.pending.get(msg.request_id);
       this.pending.delete(msg.request_id);

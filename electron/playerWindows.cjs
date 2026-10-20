@@ -22,8 +22,8 @@ class PlayerWindowManager {
     }
     const handle = this.playerWindow.getNativeWindowHandle();
     return handle.length >= 8
-      ? handle.readBigInt64LE(0).toString()
-      : String(handle.readInt32LE(0));
+      ? handle.readBigUInt64LE(0).toString()
+      : String(handle.readUInt32LE(0));
   }
 
   createWindow(initialBounds) {

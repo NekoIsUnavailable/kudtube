@@ -149,8 +149,16 @@ ipcMain.handle('player-start', async (_event, params) => {
   const { url, quality, startTime, volume, bounds, isOffline, isAudio, isLive, settings } = params || {};
   if (!url) return { ok: false, error: 'No URL provided' };
 
+  const isAudioFile = Boolean(
+    url &&
+    (url.toLowerCase().endsWith('.mp3') ||
+     url.toLowerCase().endsWith('.m4a') ||
+     url.toLowerCase().endsWith('.wav') ||
+     url.toLowerCase().endsWith('.flac'))
+  );
   const isAudioPlayback = Boolean(
     isAudio ||
+    isAudioFile ||
     quality === 'audio' ||
     !bounds ||
     (bounds.width === 0 && bounds.height === 0)

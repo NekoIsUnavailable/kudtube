@@ -140,6 +140,13 @@ export const WatchPage: React.FC<WatchPageProps> = ({
         volume: appSettings.defaultVolume ?? 100,
         isOffline: Boolean(video.isOffline || video.filePath),
         isLive: Boolean(video.isLive),
+        isAudio: Boolean(
+          video.isAudio ||
+          video.filePath?.toLowerCase().endsWith('.mp3') ||
+          video.filePath?.toLowerCase().endsWith('.m4a') ||
+          video.filePath?.toLowerCase().endsWith('.wav') ||
+          video.filePath?.toLowerCase().endsWith('.flac')
+        ),
         settings: appSettings,
         bounds: {
           x: targetX,

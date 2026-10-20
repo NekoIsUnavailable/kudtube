@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Download, Trash2, Play, HardDrive } from 'lucide-react';
 import type { DownloadItem, VideoItem } from '../types';
 import { formatDuration, formatFileSize } from '../utils/format';
+import { useMusic } from '../context/MusicContext';
+import { getOfflineDownloads, removeOfflineDownload } from '../utils/storage';
 
 interface DownloadsViewProps {
   onPlay: (video: VideoItem) => void;
@@ -10,12 +12,15 @@ interface DownloadsViewProps {
 export const DownloadsView: React.FC<DownloadsViewProps> = ({ onPlay }) => {
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { playTrack } = useMusic();
 
   const fetchDownloads = async () => {
     setLoading(true);
     if (window.kudtubeAPI?.getSavedDownloads) {
       const list = await window.kudtubeAPI.getSavedDownloads();
       setDownloads(list);
+    } else {
+      setDownloads(getOfflineDownloads());
     }
     setLoading(false);
   };
@@ -28,11 +33,25 @@ export const DownloadsView: React.FC<DownloadsViewProps> = ({ onPlay }) => {
     e.stopPropagation();
     if (window.kudtubeAPI?.deleteDownload) {
       await window.kudtubeAPI.deleteDownload(id);
-      setDownloads((prev) => prev.filter((d) => d.id !== id));
+    } else {
+      removeOfflineDownload(id);
     }
+    setDownloads((prev) => prev.filter((d) => d.id !== id));
   };
 
   const handlePlayDownloaded = (item: DownloadItem) => {
+    if (
+      item.isAudio ||
+      item.quality === 'audio' ||
+      item.filePath?.toLowerCase().endsWith('.mp3') ||
+      item.filePath?.toLowerCase().endsWith('.m4a') ||
+      item.filePath?.toLowerCase().endsWith('.wav') ||
+      item.filePath?.toLowerCase().endsWith('.flac')
+    ) {
+      playTrack(item);
+      return;
+    }
+
     onPlay({
       id: item.id,
       title: item.title,
@@ -42,6 +61,7 @@ export const DownloadsView: React.FC<DownloadsViewProps> = ({ onPlay }) => {
       url: item.filePath, // Use local file path for true offline playback!
       isOffline: true,
       filePath: item.filePath,
+      isAudio: false,
     });
   };
 
