@@ -24,19 +24,9 @@ dist-ssr
 *.sw?
 
 # Binaries
-electron/bin/mpv/
+electron/bin/mpv/*
 !electron/bin/mpv/.gitkeep
 
 # Electron releases
 release_kudtube/
 ../release_kudtube/
-
-# Android build outputs
-android/.gradle/
-android/build/
-android/app/build/
-android/.idea/
-android/captures/
-android/local.properties
-*.apk
-*.aab

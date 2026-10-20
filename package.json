@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "description": "Lightweight YouTube client with native MPV hardware-accelerated playback and offline media support.",
   "author": "KudTube Developers <dev@kudtube.app>",
+  "desktopName": "kudtube",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -16,9 +17,7 @@
     "package:win": "npm run build && electron-builder --win",
     "package:mac": "npm run build && electron-builder --mac",
     "package:linux": "npm run build && electron-builder --linux",
-    "package:all": "npm run build && electron-builder -mwl",
-    "cap:sync": "npm run build && cap sync android",
-    "cap:build:android": "npm run build && cap sync android && cd android && gradlew assembleDebug"
+    "package:all": "npm run build && electron-builder -mwl"
   },
   "build": {
     "appId": "com.kudtube.app",
@@ -59,7 +58,9 @@
         "deb"
       ],
       "icon": "build/icon.png",
-      "category": "AudioVideo"
+      "category": "AudioVideo",
+      "maintainer": "KudTube Developers <dev@kudtube.app>",
+      "syncDesktopName": true
     },
     "deb": {
       "maintainer": "KudTube Developers <dev@kudtube.app>"
@@ -91,9 +92,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@capacitor/android": "^8.5.3",
-    "@capacitor/cli": "^8.5.3",
-    "@capacitor/core": "^8.5.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

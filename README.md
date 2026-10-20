@@ -10,7 +10,6 @@
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%7C%207-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20Debian-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%7C%20Intel-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Android](https://img.shields.io/badge/Android-APK%20Direct-3DDC84?style=flat-square&logo=android&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
@@ -33,9 +32,6 @@
   <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg">
     <img src="https://img.shields.io/badge/Download_for_macOS-macOS_(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white" height="40" alt="Download macOS DMG"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube.apk">
-    <img src="https://img.shields.io/badge/Download_for_Android-APK_(.apk)-3DDC84?style=for-the-badge&logo=android&logoColor=white" height="40" alt="Download Android APK"/>
-  </a>
 </p>
 
 <p align="center">
@@ -55,7 +51,6 @@
 | Linux | Universal AppImage (`.AppImage`) | x64 | [KudTube-1.0.1.AppImage](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.AppImage) | Self-contained executable for all major Linux distributions |
 | Linux | Debian Package (`.deb`) | x64 | [kudtube_1.0.1_amd64.deb](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/kudtube_1.0.1_amd64.deb) | Native package for Ubuntu, Debian, and Linux Mint |
 | macOS | Disk Image (`.dmg`) | Universal | [KudTube-1.0.1.dmg](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg) | Standard macOS drag-and-drop installer |
-| Android | Package (`.apk`) | ARM64 / Universal | [KudTube.apk](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube.apk) | Standalone Android application package |
 
 ---
 
@@ -129,11 +124,6 @@ npm start
 - **macOS**:
   ```bash
   npm run package:mac
-  ```
-- **Android**:
-  ```bash
-  npm run cap:sync
-  cd android && ./gradlew assembleDebug
   ```
 
 ---

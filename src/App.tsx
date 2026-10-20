@@ -13,7 +13,6 @@ import { GlobalMusicBar } from './components/GlobalMusicBar';
 import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
 import { SettingsView } from './components/SettingsView';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
-import { Home, Headphones, Download, ListPlus, History, Settings } from 'lucide-react';
 import {
   getWatchLater,
   getHistory,
@@ -23,7 +22,6 @@ import {
 import {
   fetchCategoryFeedFallback,
   searchVideosFallback,
-  fetchDownloadStreamFallback,
 } from './utils/apiFallback';
 
 export type ViewType =
@@ -52,7 +50,7 @@ export function KudTubeApp() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Navigation History Stack (for Back / Forward on Desktop & Android)
+  // Navigation History Stack (for Back / Forward on Desktop)
   const [historyStack, setHistoryStack] = useState<NavState[]>([]);
   const [forwardStack, setForwardStack] = useState<NavState[]>([]);
 
@@ -261,15 +259,7 @@ export function KudTubeApp() {
   );
   const canGoForward = forwardStack.length > 0;
 
-  // Bridge check for Android hardware / gesture back button
-  useEffect(() => {
-    (window as any).__kudtubeCanGoBack = () => canGoBack;
-    return () => {
-      delete (window as any).__kudtubeCanGoBack;
-    };
-  }, [canGoBack]);
-
-  // Listen for keyboard navigation (Alt+Left/Right), mouse auxiliary buttons, and Android back
+  // Listen for keyboard navigation (Alt+Left/Right) and mouse auxiliary back/forward buttons
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'ArrowLeft') {
@@ -291,18 +281,12 @@ export function KudTubeApp() {
       }
     };
 
-    const handleAndroidBack = () => {
-      handleGoBack();
-    };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('auxclick', handleMouseAux);
-    window.addEventListener('kudtube:back', handleAndroidBack);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('auxclick', handleMouseAux);
-      window.removeEventListener('kudtube:back', handleAndroidBack);
     };
   }, [handleGoBack, handleGoForward]);
 
@@ -325,48 +309,11 @@ export function KudTubeApp() {
     }
   };
 
-  // Start Download (Electron native via yt-dlp + Android / Web fallback via direct stream)
+  // Start Download (Electron native via yt-dlp)
   const handleDownload = async (video: VideoItem, quality: string) => {
     setDownloadingIds((prev) => ({ ...prev, [video.id]: 0 }));
     if (window.kudtubeAPI?.startDownload) {
       await window.kudtubeAPI.startDownload(video, quality, getSettings());
-      return;
-    }
-
-    // Android / Web fallback
-    try {
-      const isAudio = quality === 'audio';
-      const cleanTitle = (video.title || 'video').replace(/[\\/:*?"<>|]/g, '').trim();
-      const streamInfo = await fetchDownloadStreamFallback(video.id, isAudio);
-
-      const ext = streamInfo?.ext || (isAudio ? 'm4a' : 'mp4');
-      const filename = `${cleanTitle}.${ext}`;
-      const downloadUrl = streamInfo?.url
-        ? `${streamInfo.url}#kudtube_filename=${encodeURIComponent(filename)}`
-        : `https://invidious.f5.si/latest_version?id=${video.id}&itag=${isAudio ? '140' : '18'}#kudtube_filename=${encodeURIComponent(filename)}`;
-
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = filename;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        if (document.body.contains(a)) {
-          document.body.removeChild(a);
-        }
-        setDownloadingIds((prev) => {
-          const next = { ...prev };
-          delete next[video.id];
-          return next;
-        });
-      }, 2500);
-    } catch {
-      setDownloadingIds((prev) => {
-        const next = { ...prev };
-        delete next[video.id];
-        return next;
-      });
     }
   };
 
@@ -397,7 +344,7 @@ export function KudTubeApp() {
       ) : (
         <main
           className={`flex-1 flex flex-col ${
-            currentTrack && !isPlayerExpanded ? 'pb-36 md:pb-24' : 'pb-20 md:pb-6'
+            currentTrack && !isPlayerExpanded ? 'pb-24' : 'pb-6'
           }`}
         >
           <CategoryPills
@@ -449,83 +396,6 @@ export function KudTubeApp() {
       {/* Sticky Bottom Global Music Bar (Persists across ALL views until closed or video played) */}
       {currentTrack && !isPlayerExpanded && currentView !== 'watch' && (
         <GlobalMusicBar onOpenMusicView={() => setCurrentView('music_offline')} />
-      )}
-
-      {/* Mobile Bottom Navigation Bar (YouTube / YouTube Music style) */}
-      {currentView !== 'watch' && !isPlayerExpanded && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md border-t border-gray-200 dark:border-[#272727] flex items-center justify-around py-1.5 px-2 select-none">
-          <button
-            onClick={() => loadCategoryFeed('trending')}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'home'
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <Home className="w-5 h-5" />
-            <span className="text-[10px]">Home</span>
-          </button>
-
-          <button
-            onClick={() => loadCategoryFeed('music_offline')}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'music_offline'
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <Headphones className="w-5 h-5" />
-            <span className="text-[10px]">Music</span>
-          </button>
-
-          <button
-            onClick={() => loadCategoryFeed('offline')}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'offline'
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <Download className="w-5 h-5" />
-            <span className="text-[10px]">Downloads</span>
-          </button>
-
-          <button
-            onClick={() => loadCategoryFeed('playlists')}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'playlists'
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <ListPlus className="w-5 h-5" />
-            <span className="text-[10px]">Playlists</span>
-          </button>
-
-          <button
-            onClick={() => loadCategoryFeed('history')}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'history'
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <History className="w-5 h-5" />
-            <span className="text-[10px]">History</span>
-          </button>
-
-          <button
-            onClick={handleOpenSettings}
-            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'settings' || isSettingsOverlayOpen
-                ? 'text-red-600 dark:text-red-500 font-bold'
-                : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-            <span className="text-[10px]">Settings</span>
-          </button>
-        </nav>
       )}
 
       {/* Add To Playlist Modal */}

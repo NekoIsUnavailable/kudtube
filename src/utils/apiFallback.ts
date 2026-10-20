@@ -21,7 +21,7 @@ function parseViewCount(str?: string): number | null {
 }
 
 /**
- * Direct YouTube InnerTube search (Native Android/Web client)
+ * Direct YouTube InnerTube search (Web client fallback)
  */
 async function searchViaInnerTube(query: string, limit = 24): Promise<VideoItem[]> {
   try {
@@ -211,7 +211,7 @@ export async function searchVideosFallback(query: string, limit = 30): Promise<V
 }
 
 /**
- * Fallback to resolve direct download streams for Android & Web
+ * Fallback to resolve direct download streams
  */
 export async function fetchDownloadStreamFallback(
   videoId: string,

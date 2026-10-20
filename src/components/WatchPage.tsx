@@ -343,7 +343,7 @@ export const WatchPage: React.FC<WatchPageProps> = ({
               isFullscreen ? 'fixed inset-0 z-[100] rounded-none' : ''
             }`}
           >
-            {/* Fallback player for Android (Capacitor) and Web browsers where Electron native MPV is unavailable */}
+            {/* Fallback player for preview/web development where Electron native MPV is unavailable */}
             {!window.kudtubeAPI && (
               video.filePath ? (
                 <video
