@@ -200,10 +200,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                   />
                   <div>
                     <span className="text-sm font-semibold text-black dark:text-white group-hover:text-[#065fd4] dark:group-hover:text-[#3ea6ff] transition">
-                      Low-end netbook (Acer Aspire One D255E / Atom N455)
+                      Low-end
                     </span>
                     <p className="text-xs text-[#606060] dark:text-[#aaa] mt-0.5 leading-relaxed">
-                      Optimized for single/dual-core Intel Atom, GMA 3150, Celeron, and 1GB–2GB RAM. Enforces lightweight H.264 up to 480p and reduces deblocking loopfilter to eliminate CPU stuttering.
+                      Optimized for older or lower-spec computers and limited RAM. Enforces lightweight H.264 up to 480p and reduces deblocking loopfilter to eliminate CPU stuttering.
                     </p>
                   </div>
                 </label>
@@ -222,7 +222,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                       Balanced (Recommended)
                     </span>
                     <p className="text-xs text-[#606060] dark:text-[#aaa] mt-0.5 leading-relaxed">
-                      Standard laptops, Core i3/i5, Intel UHD/Iris graphics, and 4GB+ RAM. 720p HD streaming with hardware decoding and 64 MB buffer.
+                      Standard modern laptops and desktop PCs. 720p HD streaming with hardware decoding and smooth buffering.
                     </p>
                   </div>
                 </label>
@@ -241,7 +241,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                       High performance
                     </span>
                     <p className="text-xs text-[#606060] dark:text-[#aaa] mt-0.5 leading-relaxed">
-                      Desktops, discrete GPUs, Apple Silicon, and modern Ryzen systems. Full HD 1080p / 4K with VP9/AV1 codecs and 256 MB cache.
+                      Powerful PCs with dedicated graphics. Full HD 1080p and higher with high-fidelity video scalers.
                     </p>
                   </div>
                 </label>
@@ -276,7 +276,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                 >
                   <option value="auto">Auto (Adaptive)</option>
                   <option value="360p">360p (Data saver)</option>
-                  <option value="480p">480p (Standard definition / Netbook)</option>
+                  <option value="480p">480p (Standard definition / Low-end)</option>
                   <option value="720p">720p (High definition)</option>
                   <option value="1080p">1080p (Full HD)</option>
                 </select>
@@ -465,7 +465,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                   {settings.downloadQuality === 'match_preset' &&
                     `Automatically downloads ${
                       settings.preset === 'low'
-                        ? '480p H.264 MP4 (pre-merged with zero CPU re-encoding for netbooks)'
+                        ? '480p H.264 MP4 (pre-merged with zero CPU re-encoding for low-end hardware)'
                         : settings.preset === 'mid'
                         ? '720p HD MP4'
                         : '1080p Full HD'
@@ -613,7 +613,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack }) => {
                   onChange={(e) => update('skipLoopFilter', e.target.value as LoopFilterPreference)}
                   className="px-3 py-2 rounded-lg bg-transparent border border-[#ccc] dark:border-[#383838] text-sm text-black dark:text-white font-medium focus:outline-none focus:border-[#065fd4] dark:focus:border-[#3ea6ff] cursor-pointer"
                 >
-                  <option value="nonkey">Skip non-key (Recommended for Atom / Netbooks)</option>
+                  <option value="nonkey">Skip non-key (Recommended for low-end PCs)</option>
                   <option value="default">Default</option>
                   <option value="none">None (Full fidelity deblocking)</option>
                 </select>

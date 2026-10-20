@@ -49,6 +49,7 @@ export function KudTubeApp() {
 
   // Playlist modal state
   const [playlistModalVideo, setPlaylistModalVideo] = useState<VideoItem | null>(null);
+  const [isSettingsOverlayOpen, setIsSettingsOverlayOpen] = useState(false);
 
   // Downloads in progress: id -> percent
   const [downloadingIds, setDownloadingIds] = useState<Record<string, number>>({});
@@ -150,18 +151,28 @@ export function KudTubeApp() {
     setCurrentView('watch');
   };
 
-  // Hide native video player while modal is open so it does not punch through
+  // Hide native video player while modal or settings overlay is open so it does not punch through
   useEffect(() => {
-    if (playlistModalVideo) {
+    if (playlistModalVideo || isSettingsOverlayOpen) {
       window.kudtubeAPI?.setPlayerVisible?.(false);
     } else {
       window.kudtubeAPI?.setPlayerVisible?.(true);
     }
-  }, [playlistModalVideo]);
+  }, [playlistModalVideo, isSettingsOverlayOpen]);
 
   // Back to previous browse page
   const handleBackToBrowse = () => {
     setCurrentView(previousView || 'home');
+  };
+
+  // Open Settings handler
+  const handleOpenSettings = () => {
+    if (currentView === 'watch') {
+      setIsSettingsOverlayOpen(true);
+    } else {
+      setPreviousView(currentView);
+      setCurrentView('settings');
+    }
   };
 
   // Start Download
@@ -179,10 +190,7 @@ export function KudTubeApp() {
         currentQuery={searchQuery}
         isWatchPage={currentView === 'watch'}
         onBackToBrowse={handleBackToBrowse}
-        onOpenSettings={() => {
-          setActiveCategory('settings');
-          setCurrentView('settings');
-        }}
+        onOpenSettings={handleOpenSettings}
       />
 
       {currentView === 'watch' && currentVideo ? (
@@ -193,10 +201,7 @@ export function KudTubeApp() {
           onSelectVideo={(v) => handlePlayVideo(v, currentPlaylist)}
           onDownload={handleDownload}
           onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
-          onOpenSettings={() => {
-            setActiveCategory('settings');
-            setCurrentView('settings');
-          }}
+          onOpenSettings={handleOpenSettings}
         />
       ) : (
         <main
@@ -319,9 +324,9 @@ export function KudTubeApp() {
           </button>
 
           <button
-            onClick={() => loadCategoryFeed('settings')}
+            onClick={handleOpenSettings}
             className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition ${
-              currentView === 'settings'
+              currentView === 'settings' || isSettingsOverlayOpen
                 ? 'text-red-600 dark:text-red-500 font-bold'
                 : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white'
             }`}
@@ -338,6 +343,13 @@ export function KudTubeApp() {
           video={playlistModalVideo}
           onClose={() => setPlaylistModalVideo(null)}
         />
+      )}
+
+      {/* Settings Overlay for Watch Page (Keeps video mounted & playing) */}
+      {isSettingsOverlayOpen && (
+        <div className="fixed inset-0 z-50 bg-white dark:bg-[#0f0f0f] flex flex-col overflow-y-auto">
+          <SettingsView onBack={() => setIsSettingsOverlayOpen(false)} />
+        </div>
       )}
     </div>
   );
