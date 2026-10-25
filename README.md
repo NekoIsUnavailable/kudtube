@@ -7,9 +7,9 @@
 ### Lightweight YouTube and YouTube Music client with native MPV hardware-accelerated playback and offline media support.
 
 [![Release](https://img.shields.io/github/v/release/NekoIsUnavailable/kudtube?style=flat-square&color=black&logo=github)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%7C%207-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20Debian-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
-[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%7C%20Intel-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/latest)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011%20%7C%207-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube.Setup.1.0.2.exe)
+[![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20Debian-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/kudtube_1.0.2_amd64.deb)
+[![macOS](https://img.shields.io/badge/macOS-Apple%20Silicon%20%7C%20Intel-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2-arm64-mac.zip)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
