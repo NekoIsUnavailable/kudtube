@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, ArrowRight, Clock, Trash2, Settings } from 'lucide-react';
+import { Search, Sun, Moon, Minus, Square, X, ArrowLeft, ArrowRight, Clock, Trash2, Settings, Menu } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import kudLogo from '../assets/logo.png';
 
@@ -13,6 +13,7 @@ interface HeaderProps {
   onGoForward?: () => void;
   onBackToBrowse?: () => void;
   onOpenSettings?: () => void;
+  onToggleSidebar?: () => void;
 }
 
 const SEARCH_HISTORY_KEY = 'kudtube_search_history';
@@ -42,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   onGoForward,
   onBackToBrowse,
   onOpenSettings,
+  onToggleSidebar,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [searchInput, setSearchInput] = useState(currentQuery);
@@ -216,6 +218,16 @@ export const Header: React.FC<HeaderProps> = ({
         <>
           {/* Left: Navigation Buttons & Logo */}
           <div className="flex items-center gap-1 sm:gap-2" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            {onToggleSidebar && (
+              <button
+                onClick={onToggleSidebar}
+                title="Toggle Sidebar"
+                className="hidden sm:inline-flex p-1.5 sm:p-2 rounded-full hover:bg-[#f2f2f2] dark:hover:bg-[#272727] text-gray-700 dark:text-gray-200 transition"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+
             {/* Browser / History Back & Forward Buttons */}
             <button
               onClick={onGoBack}

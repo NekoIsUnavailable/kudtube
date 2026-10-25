@@ -4,6 +4,12 @@ const fs = require('fs');
 const https = require('https');
 const { app } = require('electron');
 
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 10,
+  keepAliveMsecs: 30000,
+});
+
 function getYtDlpPath() {
   const exeName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
   if (app && app.isPackaged) {
@@ -98,6 +104,7 @@ function fetchInnerTubeSearch(query, limit = 24) {
       'https://www.youtube.com/youtubei/v1/search?prettyPrint=false',
       {
         method: 'POST',
+        agent: httpsAgent,
         headers: {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(postData),

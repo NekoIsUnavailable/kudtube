@@ -109,6 +109,21 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+app.on('before-quit', () => {
+  if (mpv) mpv.close();
+  if (playerManager) playerManager.close();
+});
+
+process.on('SIGINT', () => {
+  if (mpv) mpv.close();
+  app.quit();
+});
+
+process.on('SIGTERM', () => {
+  if (mpv) mpv.close();
+  app.quit();
+});
+
 // Window controls
 ipcMain.handle('window-minimize', () => {
   if (mainWindow) mainWindow.minimize();

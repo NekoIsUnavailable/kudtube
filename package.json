@@ -1,7 +1,7 @@
 {
   "name": "kudtube",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lightweight YouTube client with native MPV hardware-accelerated playback and offline media support.",
   "author": "KudTube Developers <dev@kudtube.app>",
   "desktopName": "kudtube",

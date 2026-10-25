@@ -34,6 +34,27 @@ function getYtDlpExecutablePath() {
   return fs.existsSync(bundled) ? bundled : null;
 }
 
+function getYtdlFormat(quality, codec = 'avc1') {
+  const codecPrefix = codec === 'avc1' ? '[vcodec^=avc1]' : codec === 'vp9' ? '[vcodec^=vp9]' : '';
+  const audioPrefix = codec === 'avc1' ? '[acodec^=mp4a]' : '';
+
+  const buildFmt = (h) => {
+    if (!codecPrefix) {
+      return `bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
+    }
+    return `bestvideo[height<=${h}]${codecPrefix}+bestaudio${audioPrefix}/bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
+  };
+
+  const qualityFormats = {
+    '1080p': buildFmt(1080),
+    '720p': buildFmt(720),
+    '480p': buildFmt(480),
+    '360p': buildFmt(360),
+    'auto': buildFmt(720),
+  };
+  return qualityFormats[quality] || qualityFormats['720p'];
+}
+
 function initialState() {
   return {
     timePos: 0,
@@ -190,25 +211,7 @@ class MpvController {
         args.push(`--script-opts=ytdl_hook-ytdl_path=${normalizedYtDlp}`);
       }
 
-      // Configure codec matching: 'avc1' (H.264), 'vp9', or 'auto'
-      const codecPrefix = codec === 'avc1' ? '[vcodec^=avc1]' : codec === 'vp9' ? '[vcodec^=vp9]' : '';
-      const audioPrefix = codec === 'avc1' ? '[acodec^=mp4a]' : '';
-
-      const buildFmt = (h) => {
-        if (!codecPrefix) {
-          return `bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
-        }
-        return `bestvideo[height<=${h}]${codecPrefix}+bestaudio${audioPrefix}/bestvideo[height<=${h}]+bestaudio/best[height<=${h}]/best`;
-      };
-
-      const qualityFormats = {
-        '1080p': buildFmt(1080),
-        '720p': buildFmt(720),
-        '480p': buildFmt(480),
-        '360p': buildFmt(360),
-        'auto': buildFmt(720),
-      };
-      const format = qualityFormats[this.currentQuality] || qualityFormats['720p'];
+      const format = getYtdlFormat(this.currentQuality, codec);
       args.push(`--ytdl-format=${format}`);
     }
 
@@ -252,19 +255,40 @@ class MpvController {
   }
 
   async setQuality(quality) {
-    if (!this.currentUrl || !this.currentHwnd) return;
+    if (!this.currentUrl) return;
+    this.currentQuality = quality;
+    this.state.quality = quality;
+    this.state.buffering = true;
+    this.emit(true);
+
     const currentTime = this.state.timePos || 0;
     const isPaused = this.state.pause;
-    const volume = this.state.volume;
+    const codec = this.settings?.codec || 'avc1';
+    const format = getYtdlFormat(quality, codec);
 
-    await this.start(this.currentHwnd, this.currentUrl, {
-      quality,
-      startTime: currentTime,
-      volume,
-    });
+    if (this.socket && !this.socket.destroyed && this.process) {
+      try {
+        await this.sendCommand(['set_property', 'ytdl-format', format]);
+        const startOpt = `start=${currentTime.toFixed(2)}`;
+        await this.sendCommand(['loadfile', this.currentUrl, 'replace', startOpt]);
+        if (isPaused) {
+          await this.pause();
+        }
+        return;
+      } catch (err) {
+        console.warn('[mpv] dynamic quality switch failed, falling back to restart:', err);
+      }
+    }
 
-    if (isPaused) {
-      await this.pause();
+    if (this.currentHwnd) {
+      await this.start(this.currentHwnd, this.currentUrl, {
+        quality,
+        startTime: currentTime,
+        volume: this.state.volume,
+      });
+      if (isPaused) {
+        await this.pause();
+      }
     }
   }
 
@@ -292,6 +316,7 @@ class MpvController {
             this.state.error = 'Could not connect to player engine';
             this.state.buffering = false;
             this.emit(true);
+            this.close();
             resolve();
           } else {
             setTimeout(tryConnect, 100);

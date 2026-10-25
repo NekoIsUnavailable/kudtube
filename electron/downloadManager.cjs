@@ -36,7 +36,15 @@ class DownloadManager {
     try {
       return path.join(app.getPath('videos'), 'KudTube');
     } catch {
-      return path.join(app.getPath('downloads'), 'KudTube');
+      try {
+        return path.join(app.getPath('downloads'), 'KudTube');
+      } catch {
+        try {
+          return path.join(app.getPath('home'), 'KudTube_Downloads');
+        } catch {
+          return path.join(app.getPath('temp'), 'KudTube_Downloads');
+        }
+      }
     }
   }
 
@@ -260,6 +268,14 @@ class DownloadManager {
         fs.unlinkSync(item.filePath);
       } catch (err) {
         console.error('[downloads] error deleting file:', err);
+        // If file is temporarily locked (e.g. EBUSY on Windows), retry after short delay
+        if (err.code === 'EBUSY' || err.code === 'EPERM') {
+          setTimeout(() => {
+            try {
+              if (fs.existsSync(item.filePath)) fs.unlinkSync(item.filePath);
+            } catch {}
+          }, 1000);
+        }
       }
     }
     const filtered = list.filter((i) => i.id !== videoId);

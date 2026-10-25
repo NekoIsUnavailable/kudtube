@@ -7,6 +7,7 @@ import {
   Check,
   Share2,
   Settings,
+  Tv,
 } from 'lucide-react';
 import type { VideoItem, PlayerState, Playlist } from '../types';
 import { formatDuration, formatViews } from '../utils/format';
@@ -48,12 +49,25 @@ export const WatchPage: React.FC<WatchPageProps> = ({
   });
 
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const [isTheater] = useState(false);
+  const [isTheater, setIsTheater] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [inWatchLater, setInWatchLater] = useState(() => isWatchLater(video.id));
   const [descExpanded, setDescExpanded] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  // Keyboard shortcut: 't' toggles Theater Mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setIsTheater((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Sync player position with Electron native MPV window without triggering effect restarts
   const isFullscreenRef = useRef(false);
@@ -111,6 +125,14 @@ export const WatchPage: React.FC<WatchPageProps> = ({
       height: targetHeight,
     });
   }, []);
+
+  // Sync player bounds when theater mode toggles
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updatePlayerBounds();
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [isTheater, updatePlayerBounds]);
 
   // Start playback on mount or when video changes
   useEffect(() => {
@@ -530,6 +552,20 @@ export const WatchPage: React.FC<WatchPageProps> = ({
                   <span>Share</span>
                 </button>
 
+                {/* Theater Mode Toggle (Desktop) */}
+                <button
+                  onClick={() => setIsTheater((prev) => !prev)}
+                  className={`hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                    isTheater
+                      ? 'bg-red-600 text-white shadow'
+                      : 'bg-[#f2f2f2] dark:bg-[#272727] text-gray-700 dark:text-gray-200 hover:bg-[#e5e5e5] dark:hover:bg-[#383838]'
+                  }`}
+                  title="Theater Mode (t)"
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>Theater</span>
+                </button>
+
                 {/* Hardware Presets & Settings */}
                 {onOpenSettings && (
                   <button
@@ -565,17 +601,19 @@ export const WatchPage: React.FC<WatchPageProps> = ({
               </button>
             </div>
 
-            {/* Mobile Up Next List (Inside left column so sticky player sticks across full page scroll) */}
-            <div className="lg:hidden flex flex-col gap-3 mt-3">
+            {/* Up Next List (Rendered below description when in Theater Mode or on small screens) */}
+            <div className={`${isTheater ? 'flex' : 'lg:hidden flex'} flex-col gap-3 mt-4`}>
               {renderUpNext()}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Up Next & Active Playlist (Desktop only) */}
-        <div className="hidden lg:flex w-full lg:w-80 xl:w-[400px] flex-shrink-0 flex-col gap-3 px-3 sm:px-0">
-          {renderUpNext()}
-        </div>
+        {/* Right Column: Up Next & Active Playlist (Desktop standard mode) */}
+        {!isTheater && (
+          <div className="hidden lg:flex w-full lg:w-80 xl:w-[400px] flex-shrink-0 flex-col gap-3 px-3 sm:px-0">
+            {renderUpNext()}
+          </div>
+        )}
       </div>
     </div>
   );

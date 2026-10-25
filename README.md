@@ -14,22 +14,22 @@
 
 <br/>
 
-### Direct Downloads (v1.0.1)
+### Direct Downloads (v1.0.2)
 
 <p align="center">
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-Setup-1.0.1.exe">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-Setup-1.0.2.exe">
     <img src="https://img.shields.io/badge/Download_for_Windows-Installer_(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="40" alt="Download Windows Installer"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1-win.zip">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2-win.zip">
     <img src="https://img.shields.io/badge/Download_Portable-Windows_(.zip)-005A9E?style=for-the-badge&logo=windows&logoColor=white" height="40" alt="Download Windows Portable"/>
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.AppImage">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.AppImage">
     <img src="https://img.shields.io/badge/Download_for_Linux-AppImage_(.AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" height="40" alt="Download Linux AppImage"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.dmg">
     <img src="https://img.shields.io/badge/Download_for_macOS-macOS_(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white" height="40" alt="Download macOS DMG"/>
   </a>
 </p>
@@ -46,11 +46,11 @@
 
 | Platform | Format | Architecture | Download Link | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| Windows | Setup Executable (`.exe`) | x64 / x86 | [KudTube-Setup-1.0.1.exe](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-Setup-1.0.1.exe) | Standard NSIS installer with desktop and start menu shortcuts |
-| Windows | Portable Archive (`.zip`) | x64 / x86 | [KudTube-1.0.1-win.zip](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1-win.zip) | Standalone portable executable. No installation required |
-| Linux | Universal AppImage (`.AppImage`) | x64 | [KudTube-1.0.1.AppImage](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.AppImage) | Self-contained executable for all major Linux distributions |
-| Linux | Debian Package (`.deb`) | x64 | [kudtube_1.0.1_amd64.deb](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/kudtube_1.0.1_amd64.deb) | Native package for Ubuntu, Debian, and Linux Mint |
-| macOS | Disk Image (`.dmg`) | Universal | [KudTube-1.0.1.dmg](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.1/KudTube-1.0.1.dmg) | Standard macOS drag-and-drop installer |
+| Windows | Setup Executable (`.exe`) | x64 / x86 | [KudTube-Setup-1.0.2.exe](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-Setup-1.0.2.exe) | Standard NSIS installer with desktop and start menu shortcuts |
+| Windows | Portable Archive (`.zip`) | x64 / x86 | [KudTube-1.0.2-win.zip](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2-win.zip) | Standalone portable executable. No installation required |
+| Linux | Universal AppImage (`.AppImage`) | x64 | [KudTube-1.0.2.AppImage](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.AppImage) | Self-contained executable for all major Linux distributions |
+| Linux | Debian Package (`.deb`) | x64 | [kudtube_1.0.2_amd64.deb](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/kudtube_1.0.2_amd64.deb) | Native package for Ubuntu, Debian, and Linux Mint |
+| macOS | Disk Image (`.dmg`) | Universal | [KudTube-1.0.2.dmg](https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.dmg) | Standard macOS drag-and-drop installer |
 
 ---
 

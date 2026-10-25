@@ -33,6 +33,10 @@ export const PlayerOverlay: React.FC = () => {
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverX, setHoverX] = useState<number>(0);
+  const scrubberContainerRef = useRef<HTMLDivElement>(null);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const unsubState = window.kudtubeAPI?.onPlayerState((state) => {
@@ -64,9 +68,49 @@ export const PlayerOverlay: React.FC = () => {
     window.kudtubeAPI?.playerTogglePlay();
   };
 
+  // Debounced container click to distinguish single-click (play/pause) from double-click (fullscreen)
+  const handleContainerClick = () => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      return;
+    }
+    clickTimeoutRef.current = setTimeout(() => {
+      clickTimeoutRef.current = null;
+      window.kudtubeAPI?.playerTogglePlay();
+    }, 220);
+  };
+
+  const handleContainerDoubleClick = (e: React.MouseEvent) => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    handleFullscreen(e);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    const delta = e.deltaY < 0 ? 5 : -5;
+    const next = Math.min(100, Math.max(0, playerState.volume + delta));
+    window.kudtubeAPI?.playerSetVolume(next);
+  };
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     window.kudtubeAPI?.playerSeek(val);
+  };
+
+  const handleScrubberMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrubberContainerRef.current || playerState.duration <= 0) return;
+    const rect = scrubberContainerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const pct = x / rect.width;
+    setHoverX(x);
+    setHoverTime(pct * playerState.duration);
+  };
+
+  const handleScrubberMouseLeave = () => {
+    setHoverTime(null);
   };
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +148,7 @@ export const PlayerOverlay: React.FC = () => {
     window.kudtubeAPI?.playerNext();
   };
 
-  // YouTube Keyboard Shortcuts
+  // Full YouTube Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
@@ -112,12 +156,12 @@ export const PlayerOverlay: React.FC = () => {
       if (e.code === 'Space' || e.key === 'k') {
         e.preventDefault();
         window.kudtubeAPI?.playerTogglePlay();
-      } else if (e.key === 'f') {
+      } else if (e.key === 'j') {
         e.preventDefault();
-        handleFullscreen();
-      } else if (e.key === 'm') {
+        window.kudtubeAPI?.playerSeek(Math.max(0, playerState.timePos - 10));
+      } else if (e.key === 'l') {
         e.preventDefault();
-        window.kudtubeAPI?.playerSetMute(!playerState.mute);
+        window.kudtubeAPI?.playerSeek(Math.min(playerState.duration || 0, playerState.timePos + 10));
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         window.kudtubeAPI?.playerSeek(Math.min(playerState.duration || 0, playerState.timePos + 5));
@@ -130,6 +174,37 @@ export const PlayerOverlay: React.FC = () => {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         window.kudtubeAPI?.playerSetVolume(Math.max(0, playerState.volume - 5));
+      } else if (e.key === 'm') {
+        e.preventDefault();
+        window.kudtubeAPI?.playerSetMute(!playerState.mute);
+      } else if (e.key === 'f') {
+        e.preventDefault();
+        handleFullscreen();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        window.kudtubeAPI?.playerSeek(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        if (playerState.duration > 0) window.kudtubeAPI?.playerSeek(playerState.duration - 0.5);
+      } else if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        const fraction = parseInt(e.key, 10) / 10;
+        if (playerState.duration > 0) {
+          window.kudtubeAPI?.playerSeek(playerState.duration * fraction);
+        }
+      } else if (e.key === '>' || (e.shiftKey && e.key === '.')) {
+        e.preventDefault();
+        const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+        const nextIdx = speeds.findIndex((s) => s > playerState.speed);
+        if (nextIdx !== -1) window.kudtubeAPI?.playerSetSpeed(speeds[nextIdx]);
+      } else if (e.key === '<' || (e.shiftKey && e.key === ',')) {
+        e.preventDefault();
+        const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+        const prevIdx = speeds.slice().reverse().findIndex((s) => s < playerState.speed);
+        if (prevIdx !== -1) {
+          const rev = speeds.slice().reverse();
+          window.kudtubeAPI?.playerSetSpeed(rev[prevIdx]);
+        }
       }
     };
 
@@ -146,8 +221,9 @@ export const PlayerOverlay: React.FC = () => {
   return (
     <div
       onMouseMove={handleMouseMove}
-      onClick={() => handlePlayPause()}
-      onDoubleClick={handleFullscreen}
+      onClick={handleContainerClick}
+      onDoubleClick={handleContainerDoubleClick}
+      onWheel={handleWheel}
       className="w-screen h-screen relative select-none cursor-pointer overflow-hidden bg-transparent"
     >
       {/* Buffering Spinner */}
@@ -171,8 +247,21 @@ export const PlayerOverlay: React.FC = () => {
           controlsVisible || playerState.pause ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        {/* Scrubber Range Bar with Red Progress Trail */}
-        <div className="relative flex items-center group/scrubber cursor-pointer">
+        {/* Scrubber Range Bar with Red Progress Trail & Hover Tooltip */}
+        <div
+          ref={scrubberContainerRef}
+          onMouseMove={handleScrubberMouseMove}
+          onMouseLeave={handleScrubberMouseLeave}
+          className="relative flex items-center group/scrubber cursor-pointer"
+        >
+          {hoverTime !== null && (
+            <div
+              className="absolute -top-7 -translate-x-1/2 pointer-events-none px-1.5 py-0.5 rounded bg-black/90 text-white font-mono text-[10px] shadow border border-white/10 z-30"
+              style={{ left: `${hoverX}px` }}
+            >
+              {formatDuration(hoverTime)}
+            </div>
+          )}
           <input
             type="range"
             min={0}

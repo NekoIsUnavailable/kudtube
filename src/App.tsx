@@ -12,6 +12,7 @@ import { AddToPlaylistModal } from './components/AddToPlaylistModal';
 import { GlobalMusicBar } from './components/GlobalMusicBar';
 import { ExpandedMusicPlayer } from './components/ExpandedMusicPlayer';
 import { SettingsView } from './components/SettingsView';
+import { Sidebar } from './components/Sidebar';
 import type { VideoItem, Playlist, DownloadProgress } from './types';
 import {
   getWatchLater,
@@ -67,6 +68,27 @@ export function KudTubeApp() {
 
   // Downloads in progress: id -> percent
   const [downloadingIds, setDownloadingIds] = useState<Record<string, number>>({});
+  const [downloadCount, setDownloadCount] = useState(0);
+  const [downloadErrorToast, setDownloadErrorToast] = useState<string | null>(null);
+
+  // Collapsible desktop sidebar state
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
+    try {
+      return localStorage.getItem('kudtube_sidebar_expanded') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  const handleToggleSidebar = () => {
+    setIsSidebarExpanded((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('kudtube_sidebar_expanded', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const getCurrentNavState = useCallback((): NavState => ({
     view: currentView,
@@ -155,9 +177,32 @@ export function KudTubeApp() {
     };
   }, []);
 
+  // Fetch initial saved downloads count for sidebar badge
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (window.kudtubeAPI?.getSavedDownloads) {
+        const list = await window.kudtubeAPI.getSavedDownloads();
+        if (mounted && Array.isArray(list)) {
+          setDownloadCount(list.length);
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Listen to download progress
   useEffect(() => {
     const unsub = window.kudtubeAPI?.onDownloadProgress?.((data: DownloadProgress) => {
+      if (data.status === 'completed') {
+        setDownloadCount((prev) => prev + 1);
+      } else if (data.status === 'error') {
+        setDownloadErrorToast(data.error || 'Download failed');
+        setTimeout(() => setDownloadErrorToast(null), 5000);
+      }
+
       setDownloadingIds((prev) => {
         const next = { ...prev };
         if (data.status === 'completed' || data.status === 'error') {
@@ -329,64 +374,86 @@ export function KudTubeApp() {
         onGoForward={handleGoForward}
         onBackToBrowse={() => loadCategoryFeed('trending')}
         onOpenSettings={handleOpenSettings}
+        onToggleSidebar={handleToggleSidebar}
       />
 
-      {currentView === 'watch' && currentVideo ? (
-        <WatchPage
-          video={currentVideo}
-          playlist={currentPlaylist}
-          upNextVideos={videos.filter((v) => v.id !== currentVideo.id).slice(0, 15)}
-          onSelectVideo={(v) => handlePlayVideo(v, currentPlaylist)}
-          onDownload={handleDownload}
-          onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
-          onOpenSettings={handleOpenSettings}
-        />
-      ) : (
-        <main
-          className={`flex-1 flex flex-col ${
-            currentTrack && !isPlayerExpanded ? 'pb-24' : 'pb-6'
-          }`}
-        >
-          <CategoryPills
-            activeCategory={activeCategory}
-            onSelectCategory={loadCategoryFeed}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Classic Collapsible YouTube Sidebar (Desktop) */}
+        {currentView !== 'watch' && (
+          <Sidebar
+            currentView={currentView}
+            isExpanded={isSidebarExpanded}
+            downloadCount={downloadCount}
+            onNavigate={(view, category) => {
+              if (category) {
+                loadCategoryFeed(category as CategoryKey);
+              } else {
+                loadCategoryFeed(view as any);
+              }
+            }}
+            onOpenSettings={handleOpenSettings}
           />
+        )}
 
-          {currentView === 'offline' && (
-            <DownloadsView onPlay={(v) => handlePlayVideo(v)} />
-          )}
-
-          {currentView === 'music_offline' && (
-            <MusicView onPlaySong={(v) => handlePlayVideo(v)} />
-          )}
-
-          {currentView === 'playlists' && (
-            <PlaylistsView
-              onPlayPlaylist={(pl) => {
-                if (pl.videos.length > 0) {
-                  handlePlayVideo(pl.videos[0], pl);
-                }
-              }}
-              onPlayVideo={(v, pl) => handlePlayVideo(v, pl)}
-            />
-          )}
-
-          {currentView === 'settings' && (
-            <SettingsView onBack={handleGoBack} />
-          )}
-
-          {(currentView === 'home' || currentView === 'watch_later' || currentView === 'history') && (
-            <VideoGrid
-              videos={videos}
-              loading={loading}
-              onPlay={(v) => handlePlayVideo(v)}
+        <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
+          {currentView === 'watch' && currentVideo ? (
+            <WatchPage
+              video={currentVideo}
+              playlist={currentPlaylist}
+              upNextVideos={videos.filter((v) => v.id !== currentVideo.id).slice(0, 15)}
+              onSelectVideo={(v) => handlePlayVideo(v, currentPlaylist)}
               onDownload={handleDownload}
               onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
-              downloadingIds={downloadingIds}
+              onOpenSettings={handleOpenSettings}
             />
+          ) : (
+            <main
+              className={`flex-1 flex flex-col ${
+                currentTrack && !isPlayerExpanded ? 'pb-24' : 'pb-6'
+              }`}
+            >
+              <CategoryPills
+                activeCategory={activeCategory}
+                onSelectCategory={loadCategoryFeed}
+              />
+
+              {currentView === 'offline' && (
+                <DownloadsView onPlay={(v) => handlePlayVideo(v)} />
+              )}
+
+              {currentView === 'music_offline' && (
+                <MusicView onPlaySong={(v) => handlePlayVideo(v)} />
+              )}
+
+              {currentView === 'playlists' && (
+                <PlaylistsView
+                  onPlayPlaylist={(pl) => {
+                    if (pl.videos.length > 0) {
+                      handlePlayVideo(pl.videos[0], pl);
+                    }
+                  }}
+                  onPlayVideo={(v, pl) => handlePlayVideo(v, pl)}
+                />
+              )}
+
+              {currentView === 'settings' && (
+                <SettingsView onBack={handleGoBack} />
+              )}
+
+              {(currentView === 'home' || currentView === 'watch_later' || currentView === 'history') && (
+                <VideoGrid
+                  videos={videos}
+                  loading={loading}
+                  onPlay={(v) => handlePlayVideo(v)}
+                  onDownload={handleDownload}
+                  onAddToPlaylist={(v) => setPlaylistModalVideo(v)}
+                  downloadingIds={downloadingIds}
+                />
+              )}
+            </main>
           )}
-        </main>
-      )}
+        </div>
+      </div>
 
       {/* Full-Screen Expanded Music Player */}
       {currentTrack && isPlayerExpanded && (
@@ -410,6 +477,14 @@ export function KudTubeApp() {
       {isSettingsOverlayOpen && (
         <div className="fixed inset-0 z-50 bg-white dark:bg-[#0f0f0f] flex flex-col overflow-y-auto">
           <SettingsView onBack={() => setIsSettingsOverlayOpen(false)} />
+        </div>
+      )}
+
+      {/* Download Error Feedback Toast */}
+      {downloadErrorToast && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-red-600 text-white text-xs font-semibold shadow-2xl flex items-center gap-3">
+          <span>{downloadErrorToast}</span>
+          <button onClick={() => setDownloadErrorToast(null)} className="p-0.5 hover:opacity-75 font-bold">✕</button>
         </div>
       )}
     </div>
