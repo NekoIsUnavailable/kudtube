@@ -17,7 +17,7 @@
 ### Direct Downloads (v1.0.2)
 
 <p align="center">
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-Setup-1.0.2.exe">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube.Setup.1.0.2.exe">
     <img src="https://img.shields.io/badge/Download_for_Windows-Installer_(.exe)-0078D6?style=for-the-badge&logo=windows&logoColor=white" height="40" alt="Download Windows Installer"/>
   </a>
   <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2-win.zip">
@@ -29,13 +29,13 @@
   <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.AppImage">
     <img src="https://img.shields.io/badge/Download_for_Linux-AppImage_(.AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" height="40" alt="Download Linux AppImage"/>
   </a>
-  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2.dmg">
+  <a href="https://github.com/NekoIsUnavailable/kudtube/releases/download/v1.0.2/KudTube-1.0.2-arm64.dmg">
     <img src="https://img.shields.io/badge/Download_for_macOS-macOS_(.dmg)-000000?style=for-the-badge&logo=apple&logoColor=white" height="40" alt="Download macOS DMG"/>
   </a>
 </p>
 
 <p align="center">
-  <b><a href="https://github.com/NekoIsUnavailable/kudtube/releases">All Releases, Assets, and Checksums</a></b>
+  <b><a href="https://github.com/NekoIsUnavailable/kudtube/releases/tag/v1.0.2">All Releases, Assets, and Checksums</a></b>
 </p>
 
 </div>
